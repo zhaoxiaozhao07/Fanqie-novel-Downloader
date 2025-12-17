@@ -701,7 +701,7 @@ def download_worker():
             
             book_id = task.get('book_id')
             save_path = task.get('save_path', os.getcwd())
-            file_format = task.get('file_format', 'txt')
+            file_formats = task.get('file_formats', ['txt'])
             start_chapter = task.get('start_chapter', None)
             end_chapter = task.get('end_chapter', None)
             selected_chapters = task.get('selected_chapters', None)
@@ -762,7 +762,7 @@ def download_worker():
                 
                 # 执行下载
                 update_status(message=t('web_starting_engine'))
-                success = api.run_download(book_id, save_path, file_format, start_chapter, end_chapter, selected_chapters, progress_callback)
+                success = api.run_download(book_id, save_path, file_formats, start_chapter, end_chapter, selected_chapters, progress_callback)
 
                 # 更新队列进度
                 has_more = False
@@ -1209,13 +1209,17 @@ def api_queue_start():
 
     tasks = data.get('tasks', [])
     save_path = str(data.get('save_path', get_default_download_path())).strip()
-    file_format = str(data.get('file_format', 'txt')).strip().lower()
+    file_formats = data.get('file_formats', ['txt'])
 
     if not tasks or not isinstance(tasks, list):
         return jsonify({'success': False, 'message': t('web_provide_ids')}), 400
 
-    if file_format not in ['txt', 'epub']:
-        file_format = 'txt'
+    # 验证并清理格式列表
+    if not isinstance(file_formats, list):
+        file_formats = [str(file_formats).strip().lower()]
+    file_formats = [f.strip().lower() for f in file_formats if f.strip().lower() in ['txt', 'epub']]
+    if not file_formats:
+        file_formats = ['txt']
 
     # 确保路径存在
     try:
@@ -1280,7 +1284,7 @@ def api_queue_start():
         cleaned_tasks.append({
             'book_id': book_id,
             'save_path': save_path,
-            'file_format': file_format,
+            'file_formats': file_formats,
             'start_chapter': start_chapter,
             'end_chapter': end_chapter,
             'selected_chapters': selected_chapters

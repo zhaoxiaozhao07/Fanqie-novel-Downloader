@@ -2,12 +2,12 @@ const translations = {
     "zh": {
         // Header
         "app_title": "番茄小说下载器",
-        
+
         // Tabs
         "tab_search": "搜索书籍",
         "tab_download": "手动下载",
         "tab_queue": "待下载",
-        
+
         // Search Pane
         "search_placeholder": "输入书名或作者名搜索...",
         "btn_search": "搜索",
@@ -20,7 +20,7 @@ const translations = {
         "meta_word_count_suffix": "万字",
         "meta_chapter_count_suffix": "章",
         "label_no_desc": "暂无简介",
-        
+
         // Download Pane
         "placeholder_book_id": "例如：12345678 或 https://fanqienovel.com/12345678",
         "btn_add_to_queue": " 加入待下载",
@@ -39,18 +39,18 @@ const translations = {
         "queue_item_chapters_all": "全部章节",
         "queue_item_chapters_range": "章节范围：{0}-{1}",
         "queue_item_chapters_manual": "手动选择：{0} 章",
-        
+
         // Sidebar - Status
         "card_current_task": "当前任务",
         "status_ready": "准备就绪",
         "status_downloading": "下载中...",
         "status_completed": "已完成",
         "book_no_task": "暂无任务",
-        
+
         // Sidebar - Log
         "card_log": "运行日志",
         "log_system_started": "系统已启动，等待操作...",
-        
+
         // Chapter Modal / Inline Confirm
         "modal_chapter_title": "选择章节",
         "title_chapter_selection": "章节选择",
@@ -76,11 +76,11 @@ const translations = {
         "label_dialog_selected": "已选 {0} 章",
         "btn_selected_count": "已选 {0} 章",
         "btn_select_chapters": "选择章节",
-        
+
         // Confirm Dialog
         "confirm_title": "确认",
         "confirm_clear_queue": "确定要清空待下载队列吗？",
-        
+
         // Update Modal
         "modal_update_title": "发现新版本",
         "btn_download_update": "立即下载",
@@ -102,10 +102,10 @@ const translations = {
         "update_type_debug": "调试版",
         "update_type_standard": "标准版",
         "update_badge_rec": "推荐",
-        
+
         // Folder Browser
         "folder_browser_title": "选择文件夹",
-        
+
         // Alerts
         "alert_input_keyword": "请输入搜索关键词",
         "alert_input_book_id": "请输入书籍ID或URL",
@@ -120,8 +120,9 @@ const translations = {
         "alert_show_dialog_fail": "显示对话框失败",
         "alert_chapter_range_error": "章节范围错误",
         "alert_select_one_chapter": "请至少选择一个章节",
+        "alert_select_format": "请至少选择一种下载格式",
         "alert_url_error": "URL格式错误",
-        
+
         // JS Messages / Logs
         "msg_app_start": "系统已启动，等待操作...",
         "msg_token_loaded": "访问令牌已加载",
@@ -161,7 +162,7 @@ const translations = {
         "log_mode_manual": "手动选择: {0} 章",
         "log_download_all": "下载全部: {0}",
         "log_show_dialog_fail": "显示对话框失败: {0}",
-        
+
         // API Sources
         "api_auto_select": "自动选择",
         "api_unavailable": "不可用",
@@ -174,12 +175,12 @@ const translations = {
     "en": {
         // Header
         "app_title": "Tomato Novel Downloader",
-        
+
         // Tabs
         "tab_search": "Search Books",
         "tab_download": "Manual Download",
         "tab_queue": "Queue",
-        
+
         // Search Pane
         "search_placeholder": "Enter book title or author...",
         "btn_search": "Search",
@@ -192,7 +193,7 @@ const translations = {
         "meta_word_count_suffix": "0k words",
         "meta_chapter_count_suffix": " chapters",
         "label_no_desc": "No description available",
-        
+
         // Download Pane
         "placeholder_book_id": "E.g., 12345678 or https://fanqienovel.com/12345678",
         "btn_add_to_queue": " Add to Queue",
@@ -211,18 +212,18 @@ const translations = {
         "queue_item_chapters_all": "All chapters",
         "queue_item_chapters_range": "Chapters: {0}-{1}",
         "queue_item_chapters_manual": "Selected: {0} chapters",
-        
+
         // Sidebar - Status
         "card_current_task": "Current Task",
         "status_ready": "Ready",
         "status_downloading": "Downloading...",
         "status_completed": "Completed",
         "book_no_task": "No Task",
-        
+
         // Sidebar - Log
         "card_log": "System Log",
         "log_system_started": "System initialized. Waiting for input...",
-        
+
         // Chapter Modal / Inline Confirm
         "modal_chapter_title": "Select Chapters",
         "title_chapter_selection": "Chapter Selection",
@@ -248,11 +249,11 @@ const translations = {
         "label_dialog_selected": "Selected {0} ch",
         "btn_selected_count": "Selected {0} ch",
         "btn_select_chapters": "Select Chapters",
-        
+
         // Confirm Dialog
         "confirm_title": "Confirm",
         "confirm_clear_queue": "Clear the download queue?",
-        
+
         // Update Modal
         "modal_update_title": "New Version Found",
         "btn_download_update": "Download Now",
@@ -274,10 +275,10 @@ const translations = {
         "update_type_debug": "Debug",
         "update_type_standard": "Standard",
         "update_badge_rec": "Recommended",
-        
+
         // Folder Browser
         "folder_browser_title": "Select Folder",
-        
+
         // Alerts
         "alert_input_keyword": "Please enter search keyword",
         "alert_input_book_id": "Please enter Book ID or URL",
@@ -292,8 +293,9 @@ const translations = {
         "alert_show_dialog_fail": "Failed to show dialog",
         "alert_chapter_range_error": "Invalid chapter range",
         "alert_select_one_chapter": "Please select at least one chapter",
+        "alert_select_format": "Please select at least one download format",
         "alert_url_error": "Invalid URL format",
-        
+
         // JS Messages / Logs
         "msg_version_info": "Version: ",
         "msg_app_start": "System started, waiting for action...",
@@ -333,7 +335,7 @@ const translations = {
         "log_mode_manual": "Manual selection: {0} chapters",
         "log_download_all": "Download all: {0}",
         "log_show_dialog_fail": "Failed to show dialog: {0}",
-        
+
         // API Sources
         "api_auto_select": "Auto Select",
         "api_unavailable": "Unavailable",
@@ -351,7 +353,7 @@ class I18n {
         this.observers = [];
         this.syncToBackend(this.lang);
     }
-    
+
     t(key, ...args) {
         let value = translations[this.lang]?.[key] || key;
         if (args.length > 0) {
@@ -361,7 +363,7 @@ class I18n {
         }
         return value;
     }
-    
+
     setLanguage(lang) {
         if (this.lang === lang) return;
         this.lang = lang;
@@ -370,19 +372,19 @@ class I18n {
         this.notifyObservers();
         this.syncToBackend(lang);
     }
-    
+
     syncToBackend(lang) {
         fetch('/api/language', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ language: lang })
-        }).catch(() => {});
+        }).catch(() => { });
     }
-    
+
     toggleLanguage() {
         this.setLanguage(this.lang === 'zh' ? 'en' : 'zh');
     }
-    
+
     updatePage() {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
@@ -411,7 +413,7 @@ class I18n {
         });
         document.title = this.t('app_title');
     }
-    
+
     translateBackendMsg(msg) {
         if (this.lang === 'zh') return msg;
         if (msg.includes('下载完成')) return msg.replace('下载完成', 'Download Completed');
@@ -423,11 +425,11 @@ class I18n {
         if (msg.includes('合并文件')) return 'Merging files...';
         return msg;
     }
-    
+
     onLanguageChange(callback) {
         this.observers.push(callback);
     }
-    
+
     notifyObservers() {
         this.observers.forEach(cb => cb(this.lang));
     }

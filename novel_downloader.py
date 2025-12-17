@@ -785,8 +785,15 @@ def create_txt(name, author_name, description, chapters, save_path):
     return txt_path
 
 
-def Run(book_id, save_path, file_format='txt', start_chapter=None, end_chapter=None, selected_chapters=None, gui_callback=None):
-    """运行下载"""
+def Run(book_id, save_path, file_formats='txt', start_chapter=None, end_chapter=None, selected_chapters=None, gui_callback=None):
+    """运行下载
+    
+    Args:
+        file_formats: 文件格式，可以是字符串('txt')或列表(['txt', 'epub'])
+    """
+    # 兼容旧接口：如果是字符串则转为列表
+    if isinstance(file_formats, str):
+        file_formats = [file_formats]
     
     api = get_api_manager()
     if api is None:
@@ -1043,10 +1050,14 @@ def Run(book_id, save_path, file_format='txt', start_chapter=None, end_chapter=N
         sorted_chapters = [chapter_results[idx] for idx in sorted(chapter_results.keys()) if idx in chapter_results]
 
         
-        if file_format == 'epub':
-            output_file = create_epub(name, author_name, description, cover_url, sorted_chapters, save_path)
-        else:
-            output_file = create_txt(name, author_name, description, sorted_chapters, save_path)
+        # 根据选择的格式生成文件
+        output_files = []
+        for fmt in file_formats:
+            if fmt == 'epub':
+                output_files.append(create_epub(name, author_name, description, cover_url, sorted_chapters, save_path))
+            else:
+                output_files.append(create_txt(name, author_name, description, sorted_chapters, save_path))
+        output_file = ', '.join(output_files)
         
         # 下载完成后清除临时状态文件
         clear_status(book_id)
@@ -1076,13 +1087,13 @@ class NovelDownloader:
         """取消下载"""
         self.is_cancelled = True
     
-    def run_download(self, book_id, save_path, file_format='txt', start_chapter=None, end_chapter=None, selected_chapters=None, gui_callback=None):
+    def run_download(self, book_id, save_path, file_formats='txt', start_chapter=None, end_chapter=None, selected_chapters=None, gui_callback=None):
         """运行下载"""
         try:
             if gui_callback:
                 self.gui_verification_callback = gui_callback
             
-            return Run(book_id, save_path, file_format, start_chapter, end_chapter, selected_chapters, gui_callback)
+            return Run(book_id, save_path, file_formats, start_chapter, end_chapter, selected_chapters, gui_callback)
         except Exception as e:
             print(f"下载失败: {str(e)}")
             return False
