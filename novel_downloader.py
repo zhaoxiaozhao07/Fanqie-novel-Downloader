@@ -16,7 +16,7 @@ import inspect
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import asyncio
 from tqdm import tqdm
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Union
 from ebooklib import epub
 from config import CONFIG, print_lock, get_headers
 import aiohttp
@@ -36,12 +36,20 @@ class APIManager:
     """
     
     def __init__(self):
-        # 从 api_sources 获取第一个可用的 base_url（api_base_url 已废弃）
-        api_sources = CONFIG.get("api_sources", [])
-        if api_sources and isinstance(api_sources, list) and len(api_sources) > 0:
-            self.base_url = api_sources[0].get("base_url", "")
+        # 优先使用已选择的 api_base_url；否则回退到 api_sources 第一个
+        preferred_base_url = (CONFIG.get("api_base_url") or "").strip().rstrip('/')
+        if preferred_base_url:
+            self.base_url = preferred_base_url
         else:
-            self.base_url = CONFIG.get("api_base_url", "")
+            api_sources = CONFIG.get("api_sources", [])
+            base_url = ""
+            if api_sources and isinstance(api_sources, list) and len(api_sources) > 0:
+                first = api_sources[0]
+                if isinstance(first, dict):
+                    base_url = first.get("base_url") or first.get("api_base_url") or ""
+                elif isinstance(first, str):
+                    base_url = first
+            self.base_url = (base_url or "").strip().rstrip('/')
         self.endpoints = CONFIG["endpoints"]
         self._tls = threading.local()
         self._async_session: Optional[aiohttp.ClientSession] = None
@@ -148,14 +156,12 @@ class APIManager:
             return None
     
     def get_directory(self, book_id: str) -> Optional[List[Dict]]:
-        """获取简化目录（更快，标题与整本下载内容一致）"""
+        """获取简化目录（更快，标题与整本下载内容一致）
+        GET /api/directory - 参数: fq_id
+        """
         try:
-            endpoint = self.endpoints.get('directory')
-            if not endpoint:
-                return None
-            
-            url = f"{self.base_url}{endpoint}"
-            params = {"book_id": book_id}
+            url = f"{self.base_url}/api/directory"
+            params = {"fq_id": book_id}
             response = self._get_session().get(url, params=params, headers=get_headers(), timeout=CONFIG["request_timeout"])
             
             if response.status_code == 200:
@@ -251,63 +257,204 @@ class APIManager:
             
             return None
 
-    def get_full_content(self, book_id: str) -> Optional[str]:
-        """获取整本小说内容(纯文本)"""
-        try:
-            # 使用 /api/content?tab=下载 端点进行整书下载
-            # 注意: /api/raw_full 需要 item_id（章节ID），不适用于整书下载
-            endpoint = self.endpoints.get('content')
-            if not endpoint:
+    def get_full_content(self, book_id: str) -> Optional[Union[str, Dict[str, str]]]:
+        """获取整本小说内容，支持多节点自动切换
+
+        返回：
+        - dict: 批量模式返回的 {item_id: content}（最可靠，可与目录按 item_id 精准对齐）
+        - str: 文本模式返回的整本内容（兼容旧接口/节点）
+        """
+        max_retries = max(1, int(CONFIG.get("max_retries", 3) or 3))
+        api_sources = CONFIG.get("api_sources", [])
+
+        def _extract_bulk_map(payload) -> Optional[Dict[str, str]]:
+            if not isinstance(payload, dict):
                 return None
-                
-            url = f"{self.base_url}{endpoint}"
-            params = {"tab": "下载", "book_id": book_id}
-            
-            response = self._get_session().get(url, params=params, headers=get_headers(), timeout=60, stream=True)
-            if response.status_code != 200:
+            nested = payload.get('data')
+            if not isinstance(nested, dict):
                 return None
-            
-            raw_content = response.content
-            content_type = (response.headers.get('content-type') or '').lower()
-            
-            def _extract_text(payload):
-                if isinstance(payload, str):
-                    return payload
-                if isinstance(payload, dict):
-                    # 先看嵌套 data，再看常见文本字段
-                    nested = payload.get('data')
-                    if isinstance(nested, str):
-                        return nested
-                    if isinstance(nested, dict):
-                        for key in ("content", "text", "raw", "raw_text", "full_text"):
-                            val = nested.get(key)
-                            if isinstance(val, str):
-                                return val
+
+            keys = list(nested.keys())
+            if not keys:
+                return None
+
+            sample = keys[:min(5, len(keys))]
+            if not all(str(k).isdigit() for k in sample):
+                return None
+
+            result: Dict[str, str] = {}
+            for k, v in nested.items():
+                item_id = str(k)
+                content = None
+                if isinstance(v, str):
+                    content = v
+                elif isinstance(v, dict):
+                    content = (
+                        v.get("content")
+                        or v.get("text")
+                        or v.get("raw")
+                        or v.get("raw_text")
+                        or ""
+                    )
+                if isinstance(content, str) and content.strip():
+                    result[item_id] = content
+
+            return result or None
+
+        def _extract_text(payload) -> Optional[str]:
+            if isinstance(payload, str):
+                return payload
+            if isinstance(payload, dict):
+                nested = payload.get('data')
+                if isinstance(nested, str):
+                    return nested
+                if isinstance(nested, dict):
                     for key in ("content", "text", "raw", "raw_text", "full_text"):
-                        val = payload.get(key)
+                        val = nested.get(key)
                         if isinstance(val, str):
                             return val
-                return None
-            
-            # 优先解析 JSON 返回（新接口可能返回 {code,data:{content:...}}）
-            is_json_like = 'application/json' in content_type or raw_content[:1] in (b'{', b'[')
-            if is_json_like:
-                try:
-                    data = json.loads(raw_content.decode('utf-8', errors='ignore'))
-                except Exception:
-                    data = None
-                text_from_json = _extract_text(data) if data is not None else None
-                if text_from_json:
-                    return text_from_json
-            
-            # 回退到纯文本解码
-            if not response.encoding:
-                response.encoding = response.apparent_encoding or 'utf-8'
-            return raw_content.decode(response.encoding or 'utf-8', errors='replace')
-        except Exception as e:
-            with print_lock:
-                print(t("dl_full_content_error", str(e)))
+                for key in ("content", "text", "raw", "raw_text", "full_text"):
+                    val = payload.get(key)
+                    if isinstance(val, str):
+                        return val
             return None
+
+        endpoint = self.endpoints.get('content')
+        if not endpoint:
+            return None
+
+        # 构建要尝试的节点列表（优先当前 base_url）
+        urls_to_try: List[str] = []
+        if self.base_url:
+            urls_to_try.append(self.base_url)
+        for source in api_sources:
+            base = ""
+            if isinstance(source, dict):
+                base = source.get("base_url", "") or source.get("api_base_url", "")
+            elif isinstance(source, str):
+                base = source
+            base = (base or "").strip().rstrip('/')
+            if base and base not in urls_to_try:
+                urls_to_try.append(base)
+
+        # 下载模式：批量模式优先（可按 item_id 对齐）
+        download_modes = [
+            {"tab": "批量", "book_id": book_id},
+            {"tab": "下载", "book_id": book_id},
+        ]
+
+        headers = get_headers()
+        headers['Connection'] = 'close'
+
+        session = self._get_session()
+        connect_timeout = 10
+        read_timeout = max(120, int((CONFIG.get("request_timeout", 30) or 30) * 10))
+        timeout = (connect_timeout, read_timeout)
+
+        transient_errors = (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+            requests.exceptions.ChunkedEncodingError,
+            requests.exceptions.ContentDecodingError,
+        )
+
+        for base_url in urls_to_try:
+            url = f"{base_url}{endpoint}"
+
+            for mode in download_modes:
+                for attempt in range(max_retries):
+                    try:
+                        with print_lock:
+                            print(
+                                f"[DEBUG] 尝试节点 {base_url}, 模式 tab={mode.get('tab')} "
+                                f"({attempt + 1}/{max_retries})"
+                            )
+
+                        with session.get(
+                            url,
+                            params=mode,
+                            headers=headers,
+                            timeout=timeout,
+                            stream=True,
+                        ) as response:
+                            status_code = response.status_code
+                            resp_headers = dict(response.headers)
+                            resp_encoding = response.encoding
+
+                            if status_code == 400:
+                                # 该节点不支持此模式，尝试下一个模式
+                                break
+                            if status_code != 200:
+                                # 429/5xx 交给会话重试；这里额外做少量退避
+                                if status_code in (429, 500, 502, 503, 504) and attempt < max_retries - 1:
+                                    time.sleep(min(2 ** attempt, 10))
+                                    continue
+                                break
+
+                            raw_buf = bytearray()
+                            for chunk in response.iter_content(chunk_size=131072):
+                                if chunk:
+                                    raw_buf.extend(chunk)
+                            raw_content = bytes(raw_buf)
+
+                        if len(raw_content) < 1000:
+                            break
+
+                        content_type = (resp_headers.get('content-type') or '').lower()
+                        is_json_like = 'application/json' in content_type or raw_content[:1] in (b'{', b'[')
+
+                        if is_json_like:
+                            try:
+                                data = json.loads(raw_content.decode('utf-8', errors='ignore'))
+                            except Exception:
+                                data = None
+
+                            if not data:
+                                if attempt < max_retries - 1:
+                                    time.sleep(min(2 ** attempt, 10))
+                                    continue
+                                break
+
+                            bulk_map = _extract_bulk_map(data)
+                            if bulk_map:
+                                with print_lock:
+                                    print(f"[DEBUG] 急速下载成功，节点: {base_url}, 模式: tab={mode.get('tab')}")
+                                return bulk_map
+
+                            text_from_json = _extract_text(data)
+                            if text_from_json and len(text_from_json) > 1000:
+                                with print_lock:
+                                    print(f"[DEBUG] 急速下载成功，节点: {base_url}, 模式: tab={mode.get('tab')}")
+                                return text_from_json
+
+                            break
+
+                        encoding = resp_encoding or 'utf-8'
+                        text = raw_content.decode(encoding, errors='replace')
+                        if len(text) > 1000:
+                            with print_lock:
+                                print(f"[DEBUG] 急速下载成功，节点: {base_url}, 模式: tab={mode.get('tab')}")
+                            return text
+
+                        break
+
+                    except transient_errors as e:
+                        if attempt < max_retries - 1:
+                            time.sleep(min(2 ** attempt, 10))
+                            continue
+                        with print_lock:
+                            print(
+                                f"[DEBUG] 节点 {base_url} 下载失败: {type(e).__name__}，"
+                                f"切换模式/节点"
+                            )
+                    except Exception as e:
+                        with print_lock:
+                            print(f"[DEBUG] 节点 {base_url} 异常: {type(e).__name__}")
+                        break
+
+        with print_lock:
+            print(t("dl_full_content_error", "所有节点均失败"))
+        return None
 
 def _normalize_title(title: str) -> str:
     """标准化章节标题，用于模糊匹配"""
@@ -459,6 +606,53 @@ def get_api_manager():
 
 # ===================== 辅助函数 =====================
 
+# 文件系统非法字符
+ILLEGAL_FILENAME_CHARS = r'\/:*?"<>|'
+
+
+def sanitize_filename(name: str) -> str:
+    r"""
+    清理文件名中的非法字符
+    
+    Args:
+        name: 原始文件名
+    
+    Returns:
+        清理后的文件名，非法字符 (\ / : * ? " < > |) 替换为下划线
+    """
+    if not name:
+        return ""
+    # 将非法字符替换为下划线
+    result = re.sub(r'[\\/:*?"<>|]', '_', name)
+    return result
+
+
+def generate_filename(book_name: str, author_name: str, extension: str) -> str:
+    """
+    生成文件名
+    
+    Args:
+        book_name: 书名
+        author_name: 作者名 (可为空)
+        extension: 文件扩展名 (txt/epub)
+    
+    Returns:
+        格式化的文件名: "{书名} 作者：{作者名}.{扩展名}" 或 "{书名}.{扩展名}"
+    """
+    # 清理书名和作者名中的非法字符
+    safe_book_name = sanitize_filename(book_name)
+    safe_author_name = sanitize_filename(author_name) if author_name else ""
+    
+    # 确保扩展名不以点开头
+    ext = extension.lstrip('.')
+    
+    # 根据作者名是否为空生成不同格式的文件名
+    if safe_author_name and safe_author_name.strip():
+        return f"{safe_book_name} 作者：{safe_author_name}.{ext}"
+    else:
+        return f"{safe_book_name}.{ext}"
+
+
 def process_chapter_content(content):
     """处理章节内容"""
     if not content:
@@ -500,11 +694,19 @@ def process_chapter_content(content):
 def _get_status_file_path(book_id: str) -> str:
     """获取下载状态文件路径（保存在临时目录，不污染小说目录）"""
     import tempfile
-    import hashlib
     # 使用 book_id 的哈希作为文件名，避免冲突
     status_dir = os.path.join(tempfile.gettempdir(), 'fanqie_novel_downloader')
     os.makedirs(status_dir, exist_ok=True)
     filename = f".download_status_{book_id}.json"
+    return os.path.join(status_dir, filename)
+
+
+def _get_content_file_path(book_id: str) -> str:
+    """获取已下载内容文件路径"""
+    import tempfile
+    status_dir = os.path.join(tempfile.gettempdir(), 'fanqie_novel_downloader')
+    os.makedirs(status_dir, exist_ok=True)
+    filename = f".download_content_{book_id}.json"
     return os.path.join(status_dir, filename)
 
 
@@ -522,6 +724,28 @@ def load_status(book_id: str):
     return set()
 
 
+def load_saved_content(book_id: str) -> dict:
+    """加载已保存的章节内容
+    
+    Args:
+        book_id: 书籍ID
+    
+    Returns:
+        dict: 已保存的章节内容 {index: {'title': ..., 'content': ...}}
+    """
+    content_file = _get_content_file_path(book_id)
+    if os.path.exists(content_file):
+        try:
+            with open(content_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    # 将字符串键转换为整数键
+                    return {int(k): v for k, v in data.items()}
+        except:
+            pass
+    return {}
+
+
 def save_status(book_id: str, downloaded_ids):
     """保存下载状态（保存到临时目录）"""
     status_file = _get_status_file_path(book_id)
@@ -533,14 +757,47 @@ def save_status(book_id: str, downloaded_ids):
             print(t("dl_save_status_fail", str(e)))
 
 
+def save_content(book_id: str, chapter_results: dict):
+    """保存已下载的章节内容
+    
+    Args:
+        book_id: 书籍ID
+        chapter_results: 章节内容 {index: {'title': ..., 'content': ...}}
+    """
+    content_file = _get_content_file_path(book_id)
+    try:
+        with open(content_file, 'w', encoding='utf-8') as f:
+            json.dump(chapter_results, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        with print_lock:
+            print(f"保存章节内容失败: {str(e)}")
+
+
 def clear_status(book_id: str):
     """清除下载状态（下载完成后调用）"""
     status_file = _get_status_file_path(book_id)
+    content_file = _get_content_file_path(book_id)
     try:
         if os.path.exists(status_file):
             os.remove(status_file)
+        if os.path.exists(content_file):
+            os.remove(content_file)
     except:
         pass
+
+
+def has_saved_state(book_id: str) -> bool:
+    """检查是否有已保存的下载状态
+    
+    Args:
+        book_id: 书籍ID
+    
+    Returns:
+        bool: 是否有已保存的状态
+    """
+    status_file = _get_status_file_path(book_id)
+    content_file = _get_content_file_path(book_id)
+    return os.path.exists(status_file) or os.path.exists(content_file)
 
 
 def analyze_download_completeness(chapter_results: dict, expected_chapters: list = None, log_func=None) -> dict:
@@ -756,8 +1013,9 @@ def create_epub(name, author_name, description, cover_url, chapters, save_path):
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
     
-    filename = re.sub(r'[\\/:*?"<>|]', '_', name)
-    epub_path = os.path.join(save_path, f'{filename}.epub')
+    # 使用新的文件命名逻辑
+    filename = generate_filename(name, author_name, 'epub')
+    epub_path = os.path.join(save_path, filename)
     epub.write_epub(epub_path, book)
     
     return epub_path
@@ -765,8 +1023,9 @@ def create_epub(name, author_name, description, cover_url, chapters, save_path):
 
 def create_txt(name, author_name, description, chapters, save_path):
     """创建TXT文件"""
-    filename = re.sub(r'[\\/:*?"<>|]', '_', name)
-    txt_path = os.path.join(save_path, f'{filename}.txt')
+    # 使用新的文件命名逻辑
+    filename = generate_filename(name, author_name, 'txt')
+    txt_path = os.path.join(save_path, filename)
     
     with open(txt_path, 'w', encoding='utf-8') as f:
         f.write(f"{name}\n")
@@ -821,6 +1080,7 @@ def Run(book_id, save_path, file_formats='txt', start_chapter=None, end_chapter=
         
         chapter_results = {}
         use_full_download = False
+        speed_mode_downloaded_ids = set()
         
         # 先获取章节目录（优先使用 directory 接口，更快且标题与整本下载一致）
         log_message("正在获取章节列表...", 15)
@@ -874,29 +1134,55 @@ def Run(book_id, save_path, file_formats='txt', start_chapter=None, end_chapter=
         # 尝试极速下载模式 (仅当没有指定范围且没有选择特定章节时)
         if start_chapter is None and end_chapter is None and not selected_chapters:
             log_message(t("dl_try_speed_mode"), 25)
-            full_text = api.get_full_content(book_id)
-            if full_text:
+            full_content = api.get_full_content(book_id)
+            if full_content:
                 log_message(t("dl_speed_mode_success"), 30)
-                # 使用目录标题来分割内容
-                chapters_parsed = parse_novel_text_with_catalog(full_text, chapters)
-                
-                if chapters_parsed and len(chapters_parsed) >= len(chapters) * 0.8:
-                    # 成功解析出至少80%的章节
-                    log_message(t("dl_speed_mode_parsed", len(chapters_parsed)), 50)
-                    with tqdm(total=len(chapters_parsed), desc=t("dl_processing_chapters"), disable=gui_callback is not None) as pbar:
-                        for ch in chapters_parsed:
-                            processed = process_chapter_content(ch['content'])
-                            chapter_results[ch['index']] = {
-                                'title': ch['title'],
-                                'content': processed
-                            }
-                            if pbar: pbar.update(1)
-                    
-                    use_full_download = True
-                    log_message(t("dl_process_complete"), 80)
+                # 批量模式：返回 {item_id: content}，可精准与目录对齐
+                if isinstance(full_content, dict):
+                    with tqdm(total=len(chapters), desc=t("dl_processing_chapters"), disable=gui_callback is not None) as pbar:
+                        for ch in chapters:
+                            raw = full_content.get(ch['id'])
+                            if isinstance(raw, str) and raw.strip():
+                                processed = process_chapter_content(raw)
+                                chapter_results[ch['index']] = {
+                                    'title': ch['title'],
+                                    'content': processed
+                                }
+                                speed_mode_downloaded_ids.add(ch['id'])
+                            if pbar:
+                                pbar.update(1)
+
+                    parsed_count = len(speed_mode_downloaded_ids)
+                    log_message(t("dl_speed_mode_parsed", parsed_count), 50)
+
+                    if parsed_count == total_chapters:
+                        use_full_download = True
+                        log_message(t("dl_process_complete"), 80)
+                    else:
+                        log_message(f"急速模式批量内容不完整 ({parsed_count}/{total_chapters})，将缺失章节切换到普通模式下载")
                 else:
-                    parsed_count = len(chapters_parsed) if chapters_parsed else 0
-                    log_message(f"急速模式解析不完整 ({parsed_count}/{total_chapters})，切换到普通模式")
+                    full_text = str(full_content)
+                    # 使用目录标题来分割内容（兼容旧节点/下载模式）
+                    chapters_parsed = parse_novel_text_with_catalog(full_text, chapters)
+
+                    if chapters_parsed and len(chapters_parsed) >= len(chapters) * 0.8:
+                        # 成功解析出至少80%的章节
+                        log_message(t("dl_speed_mode_parsed", len(chapters_parsed)), 50)
+                        with tqdm(total=len(chapters_parsed), desc=t("dl_processing_chapters"), disable=gui_callback is not None) as pbar:
+                            for ch in chapters_parsed:
+                                processed = process_chapter_content(ch['content'])
+                                chapter_results[ch['index']] = {
+                                    'title': ch['title'],
+                                    'content': processed
+                                }
+                                if pbar:
+                                    pbar.update(1)
+
+                        use_full_download = True
+                        log_message(t("dl_process_complete"), 80)
+                    else:
+                        parsed_count = len(chapters_parsed) if chapters_parsed else 0
+                        log_message(f"急速模式解析不完整 ({parsed_count}/{total_chapters})，切换到普通模式")
             else:
                 log_message(t("dl_speed_mode_fail"))
 
@@ -925,6 +1211,15 @@ def Run(book_id, save_path, file_formats='txt', start_chapter=None, end_chapter=
                     log_message(t("dl_filter_error", e))
             
             downloaded_ids = load_status(book_id)
+            if speed_mode_downloaded_ids:
+                downloaded_ids.update(speed_mode_downloaded_ids)
+             
+            # 加载已保存的章节内容（断点续传）
+            saved_content = load_saved_content(book_id)
+            if saved_content:
+                log_message(f"发现已保存的下载进度，已有 {len(saved_content)} 个章节", 22)
+                chapter_results.update(saved_content)
+            
             chapters_to_download = [ch for ch in chapters if ch["id"] not in downloaded_ids]
             
             if not chapters_to_download:
@@ -962,7 +1257,9 @@ def Run(book_id, save_path, file_formats='txt', start_chapter=None, end_chapter=
                         except Exception:
                             pass
             
+            # 保存下载状态和章节内容
             save_status(book_id, downloaded_ids)
+            save_content(book_id, chapter_results)
         
         # ==================== 下载完整性分析 ====================
         if gui_callback:
@@ -1033,16 +1330,16 @@ def Run(book_id, save_path, file_formats='txt', start_chapter=None, end_chapter=
                 order_issues.append((sorted_indices[i-1], idx))
         
         if order_issues:
-            log_message(f"⚠️ 检测到章节序号不连续: {order_issues[:5]}{'...' if len(order_issues) > 5 else ''}", 93)
+            log_message(f"检测到章节序号不连续: {order_issues[:5]}{'...' if len(order_issues) > 5 else ''}", 93)
         else:
-            log_message("✅ 章节顺序验证通过", 93)
+            log_message("章节顺序验证通过", 93)
         
         # 最终统计
         total_expected = len(chapters) if not use_full_download else len(chapter_results)
         total_downloaded = len(chapter_results)
         completeness = (total_downloaded / total_expected * 100) if total_expected > 0 else 100
         
-        log_message(f"📊 下载统计: {total_downloaded}/{total_expected} 章 ({completeness:.1f}%)", 95)
+        log_message(f"下载统计: {total_downloaded}/{total_expected} 章 ({completeness:.1f}%)", 95)
         
         if gui_callback:
             gui_callback(95, "正在生成文件...")
@@ -1064,9 +1361,9 @@ def Run(book_id, save_path, file_formats='txt', start_chapter=None, end_chapter=
         
         # 最终结果
         if completeness >= 100:
-            log_message(f"✅ 下载完成! 文件: {output_file}", 100)
+            log_message(f"下载完成! 文件: {output_file}", 100)
         else:
-            log_message(f"⚠️ 下载完成(部分章节缺失)! 文件: {output_file}", 100)
+            log_message(f"下载完成(部分章节缺失)! 文件: {output_file}", 100)
         
         return True
         
