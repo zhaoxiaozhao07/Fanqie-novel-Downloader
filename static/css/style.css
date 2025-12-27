@@ -107,6 +107,12 @@ body {
     border: 1px solid var(--border);
     -webkit-app-region: drag;
     flex-shrink: 0;
+    cursor: grab;
+    user-select: none;
+}
+
+.dashboard-header:active {
+    cursor: grabbing;
 }
 
 .brand {
@@ -219,8 +225,8 @@ body {
 }
 
 .win-btn {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     border: none;
     cursor: pointer;
