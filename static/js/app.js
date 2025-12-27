@@ -15,7 +15,7 @@ class Toast {
     static show(message, type = 'info', duration = 5000) {
         this.init();
         const id = ++this.idCounter;
-        
+
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.innerHTML = `
@@ -23,18 +23,18 @@ class Toast {
             <div class="toast-message">${message}</div>
             <button class="toast-close" onclick="Toast.dismiss(${id})">×</button>
         `;
-        
+
         this.container.appendChild(toast);
         this.toasts.set(id, toast);
-        
+
         // 触发动画
         requestAnimationFrame(() => toast.classList.add('toast-show'));
-        
+
         // 自动消失
         if (duration > 0) {
             setTimeout(() => this.dismiss(id), duration);
         }
-        
+
         return id;
     }
 
@@ -57,10 +57,10 @@ class Toast {
     static dismiss(id) {
         const toast = this.toasts.get(id);
         if (!toast) return;
-        
+
         toast.classList.remove('toast-show');
         toast.classList.add('toast-hide');
-        
+
         setTimeout(() => {
             toast.remove();
             this.toasts.delete(id);
@@ -86,7 +86,7 @@ class QueueManager {
         this.statusPollInterval = null;
         this.serverTasks = [];  // 服务器端任务状态
     }
-    
+
     // 获取状态图标
     getStatusIcon(status) {
         const icons = {
@@ -98,7 +98,7 @@ class QueueManager {
         };
         return icons[status] || icons.pending;
     }
-    
+
     // 获取状态文本
     getStatusText(status) {
         const texts = {
@@ -110,7 +110,7 @@ class QueueManager {
         };
         return texts[status] || status;
     }
-    
+
     // 从服务器获取队列状态
     async fetchQueueStatus() {
         try {
@@ -129,7 +129,7 @@ class QueueManager {
         }
         return null;
     }
-    
+
     // 跳过当前任务
     async skipCurrent() {
         try {
@@ -153,7 +153,7 @@ class QueueManager {
         }
         return false;
     }
-    
+
     // 重试任务
     async retryTask(taskId) {
         try {
@@ -178,7 +178,7 @@ class QueueManager {
         }
         return false;
     }
-    
+
     // 重试所有失败任务
     async retryAllFailed() {
         try {
@@ -203,7 +203,7 @@ class QueueManager {
         }
         return false;
     }
-    
+
     // 强制保存
     async forceSave() {
         try {
@@ -227,7 +227,7 @@ class QueueManager {
         }
         return false;
     }
-    
+
     // 检查断点续传
     async checkResume(bookId) {
         try {
@@ -249,7 +249,7 @@ class QueueManager {
         }
         return null;
     }
-    
+
     // 开始状态轮询
     startStatusPolling() {
         if (this.statusPollInterval) return;
@@ -265,7 +265,7 @@ class QueueManager {
             }
         }, 1000);
     }
-    
+
     // 停止状态轮询
     stopStatusPolling() {
         if (this.statusPollInterval) {
@@ -273,15 +273,15 @@ class QueueManager {
             this.statusPollInterval = null;
         }
     }
-    
+
     // 更新队列UI
     updateQueueUI(status) {
         const list = document.getElementById('queueList');
         if (!list) return;
-        
+
         const tasks = status.tasks || [];
         if (tasks.length === 0) return;
-        
+
         // 更新每个任务的状态显示
         tasks.forEach(task => {
             const taskEl = list.querySelector(`[data-task-id="${task.id}"]`);
@@ -291,7 +291,7 @@ class QueueManager {
                     statusEl.innerHTML = `${this.getStatusIcon(task.status)} ${this.getStatusText(task.status)}`;
                     statusEl.className = `queue-item-status status-${task.status}`;
                 }
-                
+
                 const progressEl = taskEl.querySelector('.queue-item-progress');
                 if (progressEl && task.status === 'downloading') {
                     progressEl.style.display = 'block';
@@ -299,7 +299,7 @@ class QueueManager {
                 } else if (progressEl) {
                     progressEl.style.display = 'none';
                 }
-                
+
                 // 显示/隐藏重试按钮
                 const retryBtn = taskEl.querySelector('.retry-btn');
                 if (retryBtn) {
@@ -307,7 +307,7 @@ class QueueManager {
                 }
             }
         });
-        
+
         // 更新摘要
         const summary = document.getElementById('queueSummary');
         if (summary) {
@@ -318,18 +318,18 @@ class QueueManager {
             summary.textContent = `${completed}/${total} 完成, ${failed} 失败, ${skipped} 跳过`;
         }
     }
-    
+
     // 显示队列完成摘要
     showQueueSummary(status) {
         const completed = status.completed_count || 0;
         const failed = status.failed_count || 0;
         const skipped = status.skipped_count || 0;
         const total = status.total_tasks || 0;
-        
+
         let message = `队列下载完成: ${completed}/${total} 成功`;
         if (failed > 0) message += `, ${failed} 失败`;
         if (skipped > 0) message += `, ${skipped} 跳过`;
-        
+
         if (failed > 0) {
             Toast.warning(message + '。点击"重试全部"可重新下载失败任务。');
         } else {
@@ -412,9 +412,9 @@ function showDuplicateDownloadDialog(bookInfo, record, downloadTime) {
                             <p style="margin: 4px 0;"><strong>${i18n.t('label_book_name') || '书名'}:</strong> ${record.book_name}</p>
                             <p style="margin: 4px 0;"><strong>${i18n.t('label_download_time') || '下载时间'}:</strong> ${downloadTime}</p>
                             <p style="margin: 4px 0;"><strong>${i18n.t('label_file_status') || '文件状态'}:</strong> 
-                                ${fileExists 
-                                    ? '<span style="color: #00ff00;">' + (i18n.t('status_file_exists') || '文件存在') + '</span>' 
-                                    : '<span style="color: #ff4444;">' + (i18n.t('status_file_missing') || '文件已移动或删除') + '</span>'}
+                                ${fileExists
+                ? '<span style="color: #00ff00;">' + (i18n.t('status_file_exists') || '文件存在') + '</span>'
+                : '<span style="color: #ff4444;">' + (i18n.t('status_file_missing') || '文件已移动或删除') + '</span>'}
                             </p>
                         </div>
                     </div>
@@ -438,12 +438,12 @@ function showDuplicateDownloadDialog(bookInfo, record, downloadTime) {
         modal.querySelector('.modal-close').addEventListener('click', () => close('cancel'));
         modal.querySelector('.cancel-btn').addEventListener('click', () => close('cancel'));
         modal.querySelector('.download-btn').addEventListener('click', () => close('download'));
-        
+
         const openBtn = modal.querySelector('.open-btn');
         if (openBtn) {
             openBtn.addEventListener('click', () => close('open'));
         }
-        
+
         modal.addEventListener('click', (e) => {
             if (e.target === modal) close('cancel');
         });
@@ -512,7 +512,7 @@ class FolderBrowser {
 
             const loadDirectory = async (path) => {
                 listContainer.innerHTML = `<div class="folder-loading"><iconify-icon icon="line-md:loading-twotone-loop"></iconify-icon></div>`;
-                
+
                 try {
                     const headers = { 'Content-Type': 'application/json' };
                     if (AppState.accessToken) {
@@ -523,47 +523,47 @@ class FolderBrowser {
                         headers: headers,
                         body: JSON.stringify({ path: path || '' })
                     });
-                    
+
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}`);
                     }
-                    
+
                     const result = await response.json();
-                    
+
                     if (result.success) {
                         currentPath = result.data.current_path;
                         parentPath = result.data.parent_path;
                         pathInput.value = currentPath;
                         navUp.disabled = result.data.is_root;
-                        
+
                         // 显示快捷路径
                         if (result.data.quick_paths && result.data.quick_paths.length > 0) {
                             quickContainer.style.display = 'flex';
-                            quickContainer.innerHTML = result.data.quick_paths.map(q => 
+                            quickContainer.innerHTML = result.data.quick_paths.map(q =>
                                 `<button class="btn btn-sm btn-secondary quick-btn" data-path="${q.path}" title="${q.name}">
                                     <iconify-icon icon="${q.icon}"></iconify-icon>
                                 </button>`
                             ).join('');
-                            
+
                             quickContainer.querySelectorAll('.quick-btn').forEach(btn => {
                                 btn.addEventListener('click', () => loadDirectory(btn.dataset.path));
                             });
                         }
-                        
+
                         // 显示驱动器列表 (Windows)
                         if (result.data.drives && result.data.drives.length > 0) {
                             drivesContainer.style.display = 'flex';
-                            drivesContainer.innerHTML = result.data.drives.map(d => 
+                            drivesContainer.innerHTML = result.data.drives.map(d =>
                                 `<button class="btn btn-sm btn-secondary drive-btn" data-path="${d.path}">${d.name}</button>`
                             ).join('');
-                            
+
                             drivesContainer.querySelectorAll('.drive-btn').forEach(btn => {
                                 btn.addEventListener('click', () => loadDirectory(btn.dataset.path));
                             });
                         } else {
                             drivesContainer.style.display = 'none';
                         }
-                        
+
                         // 显示目录列表
                         if (result.data.directories.length === 0) {
                             listContainer.innerHTML = `<div class="folder-empty"><iconify-icon icon="line-md:folder-off-twotone"></iconify-icon></div>`;
@@ -574,7 +574,7 @@ class FolderBrowser {
                                     <span>${d.name}</span>
                                 </div>
                             `).join('');
-                            
+
                             listContainer.querySelectorAll('.folder-item').forEach(item => {
                                 item.addEventListener('dblclick', () => loadDirectory(item.dataset.path));
                                 item.addEventListener('click', () => {
@@ -638,16 +638,16 @@ const AppState = {
     selectedChapters: null, // 存储选中的章节索引数组
     downloadQueue: [],
     queueStorageKey: 'fanqie_download_queue',
-    
+
     setDownloading(value) {
         this.isDownloading = value;
         this.updateUIState();
     },
-    
+
     setProgress(value) {
         this.currentProgress = value;
     },
-    
+
     setSavePath(path) {
         this.savePath = path;
         const input = document.getElementById('savePath');
@@ -661,7 +661,7 @@ const AppState = {
             }, 50);
         }
     },
-    
+
     setAccessToken(token) {
         this.accessToken = token;
     },
@@ -705,7 +705,7 @@ const AppState = {
         this.saveQueue();
         renderQueue();
     },
-    
+
     updateUIState() {
         const downloadBtn = document.getElementById('downloadBtn');
         const cancelBtn = document.getElementById('cancelBtn');
@@ -714,7 +714,7 @@ const AppState = {
         const startQueueBtn = document.getElementById('startQueueBtn');
         const clearQueueBtn = document.getElementById('clearQueueBtn');
         const apiSourceSelect = document.getElementById('apiSourceSelect');
-        
+
         if (this.isDownloading) {
             downloadBtn.style.display = 'none';
             cancelBtn.style.display = 'inline-block';
@@ -740,7 +740,7 @@ const AppState = {
 async function fetchVersion(retryCount = 0) {
     const versionEl = document.getElementById('version');
     if (!versionEl) return;
-    
+
     try {
         // 添加时间戳防止缓存
         const response = await fetch(`/api/version?t=${new Date().getTime()}`);
@@ -768,7 +768,7 @@ class Logger {
         this.maxEntries = 100;
         this.entries = [];
     }
-    
+
     logKey(key, ...args) {
         this._addEntry({
             type: 'key',
@@ -777,7 +777,7 @@ class Logger {
             time: this.getTime()
         });
     }
-    
+
     log(message) {
         this._addEntry({
             type: 'raw',
@@ -785,22 +785,22 @@ class Logger {
             time: this.getTime()
         });
     }
-    
+
     _addEntry(data) {
         this.entries.push(data);
         if (this.entries.length > this.maxEntries) {
             this.entries.shift();
         }
-        
+
         const entry = document.createElement('div');
         entry.className = 'log-entry typing-cursor';
         this.container.appendChild(entry);
-        
+
         const fullText = `[${data.time}] ${this._formatText(data)}`;
         let index = 0;
         // Adjust speed based on length
         const speed = fullText.length > 50 ? 10 : 30;
-        
+
         const type = () => {
             if (index < fullText.length) {
                 entry.textContent += fullText.charAt(index);
@@ -815,22 +815,22 @@ class Logger {
                 }
             }
         };
-        
+
         type();
-        
+
         // 立即滚动一次，确保新条目可见
         const logSection = document.getElementById('logContainer');
         if (logSection) {
             logSection.scrollTop = logSection.scrollHeight;
         }
-        
+
         // 限制日志数量
         const domEntries = this.container.querySelectorAll('.log-entry');
         if (domEntries.length > this.maxEntries) {
             domEntries[0].remove();
         }
     }
-    
+
     refresh() {
         this.container.innerHTML = '';
         this.entries.forEach(data => {
@@ -839,13 +839,13 @@ class Logger {
             entry.textContent = `[${data.time}] ${this._formatText(data)}`;
             this.container.appendChild(entry);
         });
-        
+
         const logSection = document.getElementById('logContainer');
         if (logSection) {
             logSection.scrollTop = logSection.scrollHeight;
         }
     }
-    
+
     _formatText(data) {
         if (data.type === 'key') {
             return (typeof i18n !== 'undefined' ? i18n.t(data.key, ...(data.args || [])) : data.key) + (data.suffix || '');
@@ -857,12 +857,12 @@ class Logger {
             return msg;
         }
     }
-    
+
     getTime() {
         const now = new Date();
         return now.toLocaleTimeString('zh-CN');
     }
-    
+
     clear() {
         this.container.innerHTML = '';
         this.entries = [];
@@ -878,7 +878,7 @@ class APIClient {
         this.baseURL = baseURL || window.location.origin;
         this.statusPoll = null;
     }
-    
+
     async request(endpoint, options = {}) {
         try {
             const url = `${this.baseURL}${endpoint}`;
@@ -886,20 +886,20 @@ class APIClient {
                 'Content-Type': 'application/json',
                 ...options.headers
             };
-            
+
             if (AppState.accessToken) {
                 headers['X-Access-Token'] = AppState.accessToken;
             }
-            
+
             const response = await fetch(url, {
                 headers: headers,
                 ...options
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
-            
+
             // 使用自定义解析器处理大整数，避免 JavaScript Number 精度丢失
             // book_id 等字段可能超过 Number.MAX_SAFE_INTEGER (9007199254740991)
             const text = await response.text();
@@ -911,7 +911,7 @@ class APIClient {
             throw error;
         }
     }
-    
+
     async init() {
         logger.logKey('msg_init_app');
         try {
@@ -927,14 +927,14 @@ class APIClient {
             return false;
         }
     }
-    
+
     async getBookInfo(bookId) {
         try {
             const result = await this.request('/api/book-info', {
                 method: 'POST',
                 body: JSON.stringify({ book_id: bookId })
             });
-            
+
             if (result.success) {
                 return result.data;
             } else {
@@ -946,7 +946,7 @@ class APIClient {
             return null;
         }
     }
-    
+
     // ========== 搜索 API ==========
     async searchBooks(keyword, offset = 0) {
         try {
@@ -954,7 +954,7 @@ class APIClient {
                 method: 'POST',
                 body: JSON.stringify({ keyword, offset })
             });
-            
+
             if (result.success) {
                 return result.data;
             } else {
@@ -966,7 +966,7 @@ class APIClient {
             return null;
         }
     }
-    
+
     async startDownload(bookId, savePath, fileFormat, startChapter, endChapter, selectedChapters) {
         try {
             const body = {
@@ -976,16 +976,16 @@ class APIClient {
                 start_chapter: startChapter,
                 end_chapter: endChapter
             };
-            
+
             if (selectedChapters && selectedChapters.length > 0) {
                 body.selected_chapters = selectedChapters;
             }
-            
+
             const result = await this.request('/api/download', {
                 method: 'POST',
                 body: JSON.stringify(body)
             });
-            
+
             if (result.success) {
                 logger.logKey('msg_task_started');
                 AppState.setDownloading(true);
@@ -1000,7 +1000,7 @@ class APIClient {
             return false;
         }
     }
-    
+
     async cancelDownload() {
         try {
             const result = await this.request('/api/cancel', { method: 'POST' });
@@ -1015,7 +1015,7 @@ class APIClient {
         }
         return false;
     }
-    
+
     async getStatus() {
         try {
             return await this.request('/api/status');
@@ -1023,15 +1023,15 @@ class APIClient {
             return null;
         }
     }
-    
+
     startStatusPolling() {
         if (this.statusPoll) return;
-        
+
         this.statusPoll = setInterval(async () => {
             const status = await this.getStatus();
             if (status) {
                 this.updateUI(status);
-                
+
                 // 如果下载完成或被取消，停止轮询
                 if (!status.is_downloading) {
                     this.stopStatusPolling();
@@ -1040,38 +1040,38 @@ class APIClient {
             }
         }, 500);
     }
-    
+
     stopStatusPolling() {
         if (this.statusPoll) {
             clearInterval(this.statusPoll);
             this.statusPoll = null;
         }
     }
-    
+
     updateUI(status) {
         // 更新进度
         const progress = status.progress || 0;
         const progressFill = document.getElementById('progressFill');
         const progressPercent = document.getElementById('progressPercent');
-        
+
         progressFill.style.width = progress + '%';
         progressPercent.textContent = progress + '%';
-        
+
         // 更新进度标签徽章
         updateProgressBadge(progress);
-        
+
         // 更新消息队列（显示所有消息，不遗漏）
         if (status.messages && status.messages.length > 0) {
             for (const msg of status.messages) {
                 logger.log(msg);
             }
         }
-        
+
         // 更新书籍名称
         if (status.book_name) {
             document.getElementById('bookName').textContent = status.book_name;
         }
-        
+
         // 更新状态文本
         if (status.is_downloading) {
             const queueInfo = status.queue_total ? ` (${status.queue_current || 1}/${status.queue_total})` : '';
@@ -1083,7 +1083,7 @@ class APIClient {
             document.getElementById('statusText').textContent = i18n.t('status_ready');
         }
     }
-    
+
     async getSavePath() {
         try {
             const result = await this.request('/api/config/save-path');
@@ -1092,7 +1092,7 @@ class APIClient {
             return null;
         }
     }
-    
+
     async setSavePath(path) {
         try {
             const result = await this.request('/api/config/save-path', {
@@ -1104,7 +1104,7 @@ class APIClient {
             return false;
         }
     }
-    
+
     async selectFolder(currentPath = '') {
         try {
             const result = await this.request('/api/select-folder', {
@@ -1117,7 +1117,7 @@ class APIClient {
             return { success: false };
         }
     }
-    
+
     // ========== 批量下载 API ==========
     async batchDownload(bookIds, savePath, fileFormat = 'txt') {
         try {
@@ -1135,7 +1135,7 @@ class APIClient {
             return { success: false, message: error.message };
         }
     }
-    
+
     async getBatchStatus() {
         try {
             const result = await this.request('/api/batch-status');
@@ -1144,7 +1144,7 @@ class APIClient {
             return null;
         }
     }
-    
+
     async cancelBatch() {
         try {
             const result = await this.request('/api/batch-cancel', { method: 'POST' });
@@ -1155,14 +1155,16 @@ class APIClient {
     }
 
     // ========== 待下载队列 API ==========
-    async startQueue(tasks, savePath, fileFormat = 'txt') {
+    async startQueue(tasks, savePath, fileFormats = ['txt']) {
         try {
+            // 确保 fileFormats 是数组
+            const formats = Array.isArray(fileFormats) ? fileFormats : [fileFormats];
             const result = await this.request('/api/queue/start', {
                 method: 'POST',
                 body: JSON.stringify({
                     tasks,
                     save_path: savePath,
-                    file_format: fileFormat
+                    file_formats: formats
                 })
             });
             return result;
@@ -1194,7 +1196,7 @@ class APIClient {
             return { success: false, message: error.message };
         }
     }
-    
+
     async checkUpdate() {
         try {
             const result = await this.request('/api/check-update');
@@ -1204,7 +1206,7 @@ class APIClient {
             return { success: false };
         }
     }
-    
+
     async downloadUpdate(url, filename) {
         try {
             const result = await this.request('/api/download-update', {
@@ -1217,7 +1219,7 @@ class APIClient {
             return { success: false, message: error.message };
         }
     }
-    
+
     async getUpdateStatus() {
         try {
             return await this.request('/api/update-status');
@@ -1225,7 +1227,7 @@ class APIClient {
             return null;
         }
     }
-    
+
     async openFolder(path) {
         try {
             await this.request('/api/open-folder', {
@@ -1244,22 +1246,22 @@ const api = new APIClient();
 
 function adjustPathFontSize(input) {
     if (!input || !input.value) return;
-    
+
     const maxFontSize = 12;
     const minFontSize = 9;
-    
+
     // 获取输入框可用宽度（减去 padding）
     const inputStyle = window.getComputedStyle(input);
     const paddingLeft = parseFloat(inputStyle.paddingLeft) || 0;
     const paddingRight = parseFloat(inputStyle.paddingRight) || 0;
     const availableWidth = input.clientWidth - paddingLeft - paddingRight;
-    
+
     // 如果可用宽度太小（DOM 未完全渲染），使用默认字体
     if (availableWidth < 100) {
         input.style.fontSize = maxFontSize + 'px';
         return;
     }
-    
+
     // 创建临时测量元素
     const measureSpan = document.createElement('span');
     measureSpan.style.cssText = `
@@ -1269,30 +1271,30 @@ function adjustPathFontSize(input) {
         font-family: monospace;
     `;
     document.body.appendChild(measureSpan);
-    
+
     // 先设置最大字体，检查是否需要缩小
     measureSpan.style.fontSize = maxFontSize + 'px';
     measureSpan.textContent = input.value;
-    
+
     if (measureSpan.offsetWidth <= availableWidth) {
         // 不需要缩小，使用最大字体
         input.style.fontSize = maxFontSize + 'px';
         document.body.removeChild(measureSpan);
         return;
     }
-    
+
     // 需要缩小，从最大字体开始逐步减小
     for (let size = maxFontSize - 1; size >= minFontSize; size--) {
         measureSpan.style.fontSize = size + 'px';
         measureSpan.textContent = input.value;
-        
+
         if (measureSpan.offsetWidth <= availableWidth) {
             input.style.fontSize = size + 'px';
             document.body.removeChild(measureSpan);
             return;
         }
     }
-    
+
     // 最小字体还是放不下，就用最小字体
     input.style.fontSize = minFontSize + 'px';
     document.body.removeChild(measureSpan);
@@ -1326,7 +1328,7 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
-    
+
     // 更新内容面板
     document.querySelectorAll('.tab-pane').forEach(pane => {
         pane.classList.toggle('active', pane.id === `tab-${tabName}`);
@@ -1388,7 +1390,7 @@ function renderQueue() {
             task.author || '',
             task.book_id ? `ID: ${task.book_id}` : ''
         ].filter(Boolean).join(' · ');
-        
+
         const status = task.status || 'pending';
 
         item.innerHTML = `
@@ -1416,7 +1418,7 @@ function renderQueue() {
             AppState.removeFromQueue(task.id);
             logger.logKey('msg_removed_from_queue', title);
         });
-        
+
         const retryBtn = item.querySelector('.retry-btn');
         retryBtn.addEventListener('click', async () => {
             await queueManager.retryTask(task.id);
@@ -1446,7 +1448,11 @@ async function handleStartQueueDownload() {
         return;
     }
 
-    const fileFormat = document.querySelector('input[name="format"]:checked').value;
+    const fileFormats = Array.from(document.querySelectorAll('input[name="format"]:checked')).map(el => el.value);
+    if (fileFormats.length === 0) {
+        Toast.warning(i18n.t('alert_select_format'));
+        return;
+    }
 
     const payload = tasks.map(t => ({
         book_id: t.book_id,
@@ -1455,7 +1461,7 @@ async function handleStartQueueDownload() {
         selected_chapters: t.selected_chapters
     }));
 
-    const result = await api.startQueue(payload, savePath, fileFormat);
+    const result = await api.startQueue(payload, savePath, fileFormats);
     if (result && result.success) {
         logger.logKey('msg_queue_started', payload.length);
         AppState.clearQueue();
@@ -1487,39 +1493,39 @@ async function handleClearQueue() {
 async function handleLoadFromFile(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     // 重置 input 以便可以再次选择同一文件
     event.target.value = '';
-    
+
     try {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         const headers = {};
         if (AppState.accessToken) {
             headers['X-Access-Token'] = AppState.accessToken;
         }
-        
+
         const response = await fetch('/api/upload-book-list', {
             method: 'POST',
             headers,
             body: formData
         });
-        
+
         const result = await response.json();
-        
+
         if (!result.success) {
             Toast.error(result.message || i18n.t('alert_load_file_fail') || '加载文件失败');
             return;
         }
-        
+
         const { books, skipped, valid_count, skipped_count } = result.data;
-        
+
         if (valid_count === 0) {
             Toast.warning(i18n.t('alert_no_valid_books') || '文件中没有有效的书籍ID');
             return;
         }
-        
+
         // 添加到队列
         let addedCount = 0;
         for (const book of books) {
@@ -1541,18 +1547,18 @@ async function handleLoadFromFile(event) {
             AppState.addToQueue(task);
             addedCount++;
         }
-        
+
         let message = i18n.t('msg_loaded_from_file', addedCount) || `已从文件加载 ${addedCount} 本书籍`;
         if (skipped_count > 0) {
             message += ` (${i18n.t('msg_skipped_lines', skipped_count) || `跳过 ${skipped_count} 行`})`;
         }
-        
+
         Toast.success(message);
         logger.log(message);
-        
+
         // 切换到队列标签
         switchTab('queue');
-        
+
     } catch (e) {
         console.error('Load from file error:', e);
         Toast.error(i18n.t('alert_load_file_fail') || '加载文件失败');
@@ -1633,7 +1639,7 @@ async function refreshApiSourcesUI() {
 
     const result = await api.getApiSources();
     setApiSelectLoading(false);
-    
+
     if (!result || !result.success) {
         logger.logKey('api_check_failed', result?.message || '');
         return;
@@ -1653,9 +1659,9 @@ function initApiSourceControlsLazy() {
     select.addEventListener('change', async () => {
         const value = select.value;
         if (!value || value === '') return;
-        
+
         setApiSelectLoading(true);
-        
+
         if (value === '__auto__') {
             const res = await api.selectApiSource('auto');
             if (!res.success) {
@@ -1695,23 +1701,23 @@ function initializeUI(skipApiSources = false) {
         // 仅绑定事件，不立即加载
         initApiSourceControlsLazy();
     }
-    
+
     // 初始化保存路径
     api.getSavePath().then(path => {
         if (path) {
             AppState.setSavePath(path);
         }
     });
-    
+
     // 下载按钮
     document.getElementById('downloadBtn').addEventListener('click', () => handleAddToQueue());
-    
+
     // 取消按钮
     document.getElementById('cancelBtn').addEventListener('click', handleCancel);
-    
+
     // 清理按钮
     document.getElementById('clearBtn').addEventListener('click', handleClear);
-    
+
     // 浏览按钮（模拟文件选择）
     document.getElementById('browseBtn').addEventListener('click', handleBrowse);
 
@@ -1720,7 +1726,7 @@ function initializeUI(skipApiSources = false) {
     if (startQueueBtn) startQueueBtn.addEventListener('click', handleStartQueueDownload);
     const clearQueueBtn = document.getElementById('clearQueueBtn');
     if (clearQueueBtn) clearQueueBtn.addEventListener('click', handleClearQueue);
-    
+
     // 从文件加载按钮
     const loadFromFileBtn = document.getElementById('loadFromFileBtn');
     const bookListFileInput = document.getElementById('bookListFileInput');
@@ -1728,37 +1734,37 @@ function initializeUI(skipApiSources = false) {
         loadFromFileBtn.addEventListener('click', () => bookListFileInput.click());
         bookListFileInput.addEventListener('change', handleLoadFromFile);
     }
-    
+
     // 版本信息 - 从API获取
     fetchVersion();
-    
+
     // 初始化章节选择弹窗事件
     initChapterModalEvents();
-    
+
     // 初始化语言切换
     const langBtn = document.getElementById('langToggle');
     if (langBtn) {
         const langIcon = document.getElementById('langIcon');
-        
+
         const updateLangBtn = (lang) => {
             // 中文时显示英国旗帜(点击切换到英文)，英文时显示中国旗帜(点击切换到中文)
             langIcon.setAttribute('icon', lang === 'zh' ? 'circle-flags:uk' : 'circle-flags:cn');
         };
-        
+
         // Initial state
         updateLangBtn(i18n.lang);
         i18n.updatePage();
-        
+
         langBtn.addEventListener('click', () => {
             i18n.toggleLanguage();
         });
-        
+
         i18n.onLanguageChange((lang) => {
             updateLangBtn(lang);
             logger.refresh();
             renderQueue();
             if (apiSourcesCache) renderApiSourcesUI(apiSourcesCache);
-            
+
             // 语言切换后重新调整路径字体大小
             requestAnimationFrame(() => {
                 const pathInput = document.getElementById('savePath');
@@ -1774,7 +1780,7 @@ function initializeUI(skipApiSources = false) {
     if (styleBtn) {
         const styleLabel = document.getElementById('styleLabel');
         const iconSpan = styleBtn.querySelector('.icon');
-        
+
         // 检查本地存储的风格偏好
         const savedStyle = localStorage.getItem('app_style');
         if (savedStyle === 'scp') {
@@ -1786,18 +1792,18 @@ function initializeUI(skipApiSources = false) {
         styleBtn.addEventListener('click', () => {
             document.body.classList.toggle('scp-mode');
             const isScp = document.body.classList.contains('scp-mode');
-            
+
             styleLabel.textContent = isScp ? 'SCP' : '8-BIT';
             iconSpan.textContent = isScp ? '[⚠]' : '[🎨]';
-            
+
             // 保存偏好
             localStorage.setItem('app_style', isScp ? 'scp' : '8bit');
-            
+
             // 添加切换音效或视觉反馈（可选）
             logger.logKey(isScp ? 'log_scp_access' : 'log_scp_revert');
         });
     }
-    
+
     // checkForUpdate 已在 DOMContentLoaded 中并发执行
 }
 
@@ -1808,11 +1814,11 @@ function initChapterModalEvents() {
     document.getElementById('chapterModalClose').addEventListener('click', closeChapterModal);
     document.getElementById('cancelChaptersBtn').addEventListener('click', closeChapterModal);
     document.getElementById('confirmChaptersBtn').addEventListener('click', confirmChapterSelection);
-    
+
     document.getElementById('selectAllBtn').addEventListener('click', () => toggleAllChapters(true));
     document.getElementById('selectNoneBtn').addEventListener('click', () => toggleAllChapters(false));
     document.getElementById('selectInvertBtn').addEventListener('click', invertChapterSelection);
-    
+
     // 搜索相关事件
     document.getElementById('searchBtn').addEventListener('click', handleSearch);
     document.getElementById('searchKeyword').addEventListener('keypress', (e) => {
@@ -1832,22 +1838,22 @@ async function handleSearch() {
         Toast.warning(i18n.t('alert_input_keyword'));
         return;
     }
-    
+
     // 重置搜索状态
     searchOffset = 0;
     currentSearchKeyword = keyword;
-    
+
     const searchBtn = document.getElementById('searchBtn');
     searchBtn.disabled = true;
     // searchBtn.textContent = '搜索中...'; // Let's keep icon or just disable
-    
+
     logger.logKey('msg_searching', keyword);
-    
+
     const result = await api.searchBooks(keyword, 0);
-    
+
     searchBtn.disabled = false;
     searchBtn.textContent = i18n.t('btn_search');
-    
+
     if (result && result.books) {
         displaySearchResults(result.books, false, result.has_more);
         searchOffset = result.books.length;
@@ -1860,16 +1866,16 @@ async function handleSearch() {
 
 async function loadMoreResults() {
     if (!currentSearchKeyword) return;
-    
+
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     loadMoreBtn.disabled = true;
     // loadMoreBtn.textContent = '加载中...';
-    
+
     const result = await api.searchBooks(currentSearchKeyword, searchOffset);
-    
+
     loadMoreBtn.disabled = false;
     loadMoreBtn.textContent = i18n.t('btn_load_more');
-    
+
     if (result && result.books && result.books.length > 0) {
         displaySearchResults(result.books, true, result.has_more);
         searchOffset += result.books.length;
@@ -1883,15 +1889,15 @@ function displaySearchResults(books, append = false, hasMore = false) {
     const listContainer = document.getElementById('searchResultList');
     const countSpan = document.getElementById('searchResultCount');
     const loadMoreContainer = document.getElementById('loadMoreContainer');
-    
+
     headerContainer.style.display = 'flex';
-    
+
     if (!append) {
         // 保留加载更多按钮，清除其他内容
         listContainer.innerHTML = '';
         listContainer.appendChild(loadMoreContainer);
     }
-    
+
     if (books.length === 0 && !append) {
         listContainer.innerHTML = `
             <div class="empty-state">
@@ -1905,30 +1911,30 @@ function displaySearchResults(books, append = false, hasMore = false) {
         headerContainer.style.display = 'none';
         return;
     }
-    
+
     books.forEach(book => {
         const item = document.createElement('div');
         item.className = 'search-item';
         item.onclick = () => selectBook(book.book_id, book.book_name);
-        
+
         const wordCount = book.word_count ? (book.word_count / 10000).toFixed(1) + i18n.t('meta_word_count_suffix') : '';
         const chapterCount = book.chapter_count ? book.chapter_count + i18n.t('meta_chapter_count_suffix') : '';
         const status = book.status || '';
-        
+
         // Translate status
         let displayStatus = status;
         let statusClass = 'ongoing';
-        
+
         if (status === '完结' || status === '已完结') {
             displayStatus = i18n.t('status_complete');
             statusClass = 'complete';
         } else if (status === '连载' || status === '连载中') {
             displayStatus = i18n.t('status_ongoing');
         }
-        
+
         const abstractText = book.abstract || i18n.t('label_no_desc');
         const needsExpand = abstractText.length > 100;
-        
+
         item.innerHTML = `
             <img class="search-cover" src="${book.cover_url || ''}" alt="" onerror="this.style.display='none'">
             <div class="search-info">
@@ -1946,7 +1952,7 @@ function displaySearchResults(books, append = false, hasMore = false) {
                 <button class="btn btn-sm btn-primary" type="button">${i18n.t('btn_add_to_queue')}</button>
             </div>
         `;
-        
+
         // 展开/收起按钮事件
         const toggleBtn = item.querySelector('.desc-toggle');
         if (toggleBtn) {
@@ -1956,12 +1962,12 @@ function displaySearchResults(books, append = false, hasMore = false) {
                 const isCollapsed = desc.classList.contains('collapsed');
                 desc.classList.toggle('collapsed', !isCollapsed);
                 desc.classList.toggle('expanded', isCollapsed);
-                toggleBtn.innerHTML = isCollapsed 
-                    ? '<iconify-icon icon="line-md:chevron-small-up"></iconify-icon>' 
+                toggleBtn.innerHTML = isCollapsed
+                    ? '<iconify-icon icon="line-md:chevron-small-up"></iconify-icon>'
                     : '<iconify-icon icon="line-md:chevron-small-down"></iconify-icon>';
             });
         }
-        
+
         const addBtn = item.querySelector('.search-actions button');
         if (addBtn) {
             addBtn.addEventListener('click', (e) => {
@@ -1975,14 +1981,14 @@ function displaySearchResults(books, append = false, hasMore = false) {
                 });
             });
         }
-        
+
         // 插入到加载更多按钮之前
         listContainer.insertBefore(item, loadMoreContainer);
     });
-    
+
     // 显示/隐藏加载更多按钮
     loadMoreContainer.style.display = hasMore ? 'block' : 'none';
-    
+
     // 更新计数
     const totalCount = listContainer.querySelectorAll('.search-item').length;
     countSpan.textContent = `${i18n.t('search_count_prefix')}${totalCount}${i18n.t('search_count_suffix')}`;
@@ -1991,7 +1997,7 @@ function displaySearchResults(books, append = false, hasMore = false) {
 function selectBook(bookId, bookName) {
     document.getElementById('bookId').value = bookId;
     logger.logKey('log_selected', bookName, bookId);
-    
+
     // 自动切换到下载标签页
     switchTab('download');
 }
@@ -2014,7 +2020,7 @@ async function handleSelectChapters() {
         Toast.warning(i18n.t('alert_input_book_id'));
         return;
     }
-    
+
     // 验证bookId (简单复用验证逻辑)
     let validId = bookId;
     if (bookId.includes('fanqienovel.com')) {
@@ -2025,16 +2031,16 @@ async function handleSelectChapters() {
         Toast.error(i18n.t('alert_id_number'));
         return;
     }
-    
+
     const modal = document.getElementById('chapterModal');
     const listContainer = document.getElementById('chapterList');
-    
+
     modal.style.display = 'flex';
     listContainer.innerHTML = `<div style="text-align: center; padding: 20px;">${i18n.t('text_fetching_chapters')}</div>`;
-    
+
     logger.logKey('log_get_chapter_list', validId);
     const bookInfo = await api.getBookInfo(validId);
-    
+
     if (bookInfo && bookInfo.chapters) {
         currentChapters = bookInfo.chapters;
         renderChapterList(bookInfo.chapters);
@@ -2046,10 +2052,10 @@ async function handleSelectChapters() {
 function renderChapterList(chapters) {
     const listContainer = document.getElementById('chapterList');
     listContainer.innerHTML = '';
-    
+
     // 检查是否有已选状态
     const selectedSet = new Set(AppState.selectedChapters || []);
-    
+
     chapters.forEach((ch, idx) => {
         const item = document.createElement('div');
         item.className = 'chapter-item';
@@ -2057,26 +2063,26 @@ function renderChapterList(chapters) {
         item.style.alignItems = 'center';
         item.style.padding = '5px';
         item.style.borderBottom = '1px solid #eee';
-        
+
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.value = idx;
         checkbox.id = `ch-${idx}`;
         checkbox.checked = selectedSet.has(idx);
         checkbox.addEventListener('change', updateSelectedCount);
-        
+
         const label = document.createElement('label');
         label.htmlFor = `ch-${idx}`;
         label.textContent = `${ch.title}`;
         label.style.marginLeft = '10px';
         label.style.cursor = 'pointer';
         label.style.flex = '1';
-        
+
         item.appendChild(checkbox);
         item.appendChild(label);
         listContainer.appendChild(item);
     });
-    
+
     updateSelectedCount();
 }
 
@@ -2101,9 +2107,9 @@ function invertChapterSelection() {
 function confirmChapterSelection() {
     const checkboxes = document.querySelectorAll('#chapterList input[type="checkbox"]');
     const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => parseInt(cb.value));
-    
+
     AppState.selectedChapters = selected.length > 0 ? selected : null;
-    
+
     const btn = document.getElementById('selectChaptersBtn');
     if (btn) { // check existence as it might not be there in all versions
         if (AppState.selectedChapters) {
@@ -2118,7 +2124,7 @@ function confirmChapterSelection() {
             logger.logKey('log_cancel_selection');
         }
     }
-    
+
     closeChapterModal();
 }
 
@@ -2129,7 +2135,7 @@ function closeChapterModal() {
 async function checkForUpdate() {
     try {
         const result = await api.checkUpdate();
-        
+
         if (result.success && result.has_update) {
             showUpdateModal(result.data);
         }
@@ -2140,27 +2146,27 @@ async function checkForUpdate() {
 
 function simpleMarkdownToHtml(markdown) {
     if (!markdown) return i18n.t('text_no_changelog');
-    
+
     let html = markdown;
-    
+
     // 处理 Markdown 表格
     const tableRegex = /\|(.+)\|\n\|([\s\-\:]+\|)+\n((\|.+\|\n?)+)/g;
     html = html.replace(tableRegex, (match) => {
         const lines = match.trim().split('\n');
         if (lines.length < 3) return match;
-        
+
         // 解析表头
         const headerCells = lines[0].split('|').filter(cell => cell.trim());
         // 跳过分隔行 (lines[1])
         // 解析数据行
         const dataRows = lines.slice(2);
-        
+
         let tableHtml = '<table class="md-table"><thead><tr>';
         headerCells.forEach(cell => {
             tableHtml += `<th>${cell.trim()}</th>`;
         });
         tableHtml += '</tr></thead><tbody>';
-        
+
         dataRows.forEach(row => {
             if (row.trim()) {
                 const cells = row.split('|').filter(cell => cell.trim() !== '');
@@ -2174,29 +2180,29 @@ function simpleMarkdownToHtml(markdown) {
         tableHtml += '</tbody></table>';
         return tableHtml;
     });
-    
+
     // 转换标题
     html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
     html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
     html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
     html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-    
+
     // 转换粗体
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    
+
     // 转换斜体
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
+
     // 转换代码块
     html = html.replace(/`(.*?)`/g, '<code>$1</code>');
-    
+
     // 转换列表
     html = html.replace(/^\- (.*$)/gim, '<li>$1</li>');
     html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-    
+
     // 转换换行
     html = html.replace(/\n/g, '<br>');
-    
+
     // 清理多余的br标签
     html = html.replace(/<br><h/g, '<h');
     html = html.replace(/<\/h([1-6])><br>/g, '</h$1>');
@@ -2204,7 +2210,7 @@ function simpleMarkdownToHtml(markdown) {
     html = html.replace(/<ul><br>/g, '<ul>');
     html = html.replace(/<br><table/g, '<table');
     html = html.replace(/<\/table><br>/g, '</table>');
-    
+
     return html;
 }
 
@@ -2217,45 +2223,45 @@ async function showUpdateModal(updateInfo) {
     const downloadUpdateBtn = document.getElementById('downloadUpdateBtn');
     const closeUpdateBtn = document.getElementById('closeUpdateBtn');
     const updateModalClose = document.getElementById('updateModalClose');
-    
+
     // 重置UI显示状态
     updateDescription.style.display = 'block';
     versionSelector.style.display = 'none';
     downloadUpdateBtn.disabled = false;
     downloadUpdateBtn.textContent = i18n.t('btn_download_update');
-    
+
     const modalFooter = document.querySelector('.modal-footer');
     if (modalFooter) modalFooter.style.display = 'flex';
-    
+
     const progressContainer = document.getElementById('updateProgressContainer');
     if (progressContainer) progressContainer.style.display = 'none';
-    
+
     currentVersion.textContent = updateInfo.current_version;
     latestVersion.textContent = updateInfo.latest_version;
-    
+
     const releaseBody = updateInfo.release_info?.body || updateInfo.message || i18n.t('text_no_changelog');
     updateDescription.innerHTML = simpleMarkdownToHtml(releaseBody);
-    
+
     // 获取可下载的版本选项
     try {
         const response = await fetch('/api/get-update-assets', {
             headers: AppState.accessToken ? { 'X-Access-Token': AppState.accessToken } : {}
         });
         const result = await response.json();
-        
+
         if (result.success && result.assets && result.assets.length > 0) {
             // 显示版本选择器
             versionSelector.innerHTML = `<h4>${i18n.t('update_select_version')}</h4>`;
             const optionsContainer = document.createElement('div');
             optionsContainer.className = 'version-options';
-            
+
             result.assets.forEach((asset, index) => {
                 const option = document.createElement('label');
                 option.className = 'version-option';
                 if (asset.recommended) {
                     option.classList.add('recommended');
                 }
-                
+
                 const radio = document.createElement('input');
                 radio.type = 'radio';
                 radio.name = 'version';
@@ -2264,11 +2270,11 @@ async function showUpdateModal(updateInfo) {
                 if (asset.recommended) {
                     radio.checked = true;
                 }
-                
+
                 let typeText = i18n.t('update_type_standard');
                 if (asset.type === 'standalone') typeText = i18n.t('update_type_standalone');
                 else if (asset.type === 'debug') typeText = i18n.t('update_type_debug');
-                
+
                 const label = document.createElement('span');
                 label.innerHTML = `
                     <strong>${typeText}</strong> 
@@ -2277,15 +2283,15 @@ async function showUpdateModal(updateInfo) {
                     <br>
                     <small>${asset.description}</small>
                 `;
-                
+
                 option.appendChild(radio);
                 option.appendChild(label);
                 optionsContainer.appendChild(option);
             });
-            
+
             versionSelector.appendChild(optionsContainer);
             versionSelector.style.display = 'block';
-            
+
             // 检查是否支持自动更新
             let canAutoUpdate = false;
             try {
@@ -2298,7 +2304,7 @@ async function showUpdateModal(updateInfo) {
             } catch (e) {
                 console.log('无法检查自动更新支持:', e);
             }
-            
+
             // 修改下载按钮逻辑
             downloadUpdateBtn.onclick = async () => {
                 const selectedRadio = document.querySelector('input[name="version"]:checked');
@@ -2306,22 +2312,22 @@ async function showUpdateModal(updateInfo) {
                     Toast.warning(i18n.t('alert_select_version'));
                     return;
                 }
-                
+
                 const downloadUrl = selectedRadio.value;
                 const filename = selectedRadio.dataset.filename;
-                
+
                 if (canAutoUpdate) {
                     // 自动更新流程 (支持 Windows/Linux/macOS)
                     downloadUpdateBtn.disabled = true;
                     downloadUpdateBtn.textContent = i18n.t('update_btn_downloading');
-                    
+
                     // 下载开始后禁止关闭弹窗
                     if (modal.setDownloading) modal.setDownloading(true);
-                    
+
                     // 隐藏不需要的元素以腾出空间
                     updateDescription.style.display = 'none'; // 隐藏更新说明
                     versionSelector.style.display = 'none'; // 隐藏版本选择
-                    
+
                     // 创建或显示进度条
                     let progressContainer = document.getElementById('updateProgressContainer');
                     if (!progressContainer) {
@@ -2351,29 +2357,29 @@ async function showUpdateModal(updateInfo) {
                         }
                     }
                     progressContainer.style.display = 'block';
-                    
+
                     // 启动下载
                     try {
                         const headers = { 'Content-Type': 'application/json' };
                         if (AppState.accessToken) headers['X-Access-Token'] = AppState.accessToken;
-                        
+
                         const downloadResult = await fetch('/api/download-update', {
                             method: 'POST',
                             headers: headers,
                             body: JSON.stringify({ url: downloadUrl, filename: filename })
                         });
                         const downloadData = await downloadResult.json();
-                        
+
                         if (!downloadData.success) {
                             throw new Error(downloadData.message || '启动下载失败');
                         }
-                        
+
                         // 初始化进度条显示
                         const multiProgress = document.getElementById('multiThreadProgress');
                         if (multiProgress) {
                             multiProgress.innerHTML = `<div class="thread-segment" style="width:100%;background:linear-gradient(to right, #3b82f6 0%, rgba(255,255,255,0.1) 0%);"></div>`;
                         }
-                        
+
                         // 轮询下载进度
                         const pollProgress = async () => {
                             try {
@@ -2381,12 +2387,12 @@ async function showUpdateModal(updateInfo) {
                                     headers: AppState.accessToken ? { 'X-Access-Token': AppState.accessToken } : {}
                                 });
                                 const status = await statusRes.json();
-                                
+
                                 const progressBar = document.getElementById('updateProgressBar');
                                 const progressText = document.getElementById('updateProgressText');
                                 const progressPercent = document.getElementById('updateProgressPercent');
                                 const installBtn = document.getElementById('installUpdateBtn');
-                                
+
                                 if (status.merging) {
                                     // 正在合并文件
                                     const multiProgress = document.getElementById('multiThreadProgress');
@@ -2400,7 +2406,7 @@ async function showUpdateModal(updateInfo) {
                                     // 更新多线程进度条
                                     const multiProgress = document.getElementById('multiThreadProgress');
                                     const threadInfo = document.getElementById('threadInfo');
-                                    
+
                                     if (status.thread_progress && status.thread_progress.length > 0 && status.total_size > 0) {
                                         const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
                                         let html = '';
@@ -2417,7 +2423,7 @@ async function showUpdateModal(updateInfo) {
                                         multiProgress.innerHTML = `<div class="thread-segment" style="width:100%;background:linear-gradient(to right, #3b82f6 ${status.progress}%, rgba(255,255,255,0.1) ${status.progress}%);"></div>`;
                                         threadInfo.textContent = status.thread_count > 1 ? `${status.thread_count} ${i18n.t('update_threads')}` : '';
                                     }
-                                    
+
                                     progressText.textContent = status.message || i18n.t('update_btn_downloading');
                                     progressPercent.textContent = status.progress + '%';
                                     setTimeout(pollProgress, 300);
@@ -2426,21 +2432,21 @@ async function showUpdateModal(updateInfo) {
                                     multiProgress.innerHTML = `<div class="thread-segment" style="width:100%;background:#10b981;"></div>`;
                                     progressText.textContent = i18n.t('update_status_complete');
                                     progressPercent.textContent = '100%';
-                                    
+
                                     // 下载完成后，将原来的下载按钮变成安装按钮
                                     downloadUpdateBtn.disabled = false;
                                     downloadUpdateBtn.textContent = i18n.t('update_btn_install');
                                     downloadUpdateBtn.onclick = async () => {
                                         downloadUpdateBtn.disabled = true;
                                         downloadUpdateBtn.textContent = i18n.t('update_btn_preparing');
-                                        
+
                                         try {
-                                            const applyRes = await fetch('/api/apply-update', { 
+                                            const applyRes = await fetch('/api/apply-update', {
                                                 method: 'POST',
                                                 headers: AppState.accessToken ? { 'X-Access-Token': AppState.accessToken } : {}
                                             });
                                             const applyResult = await applyRes.json();
-                                            
+
                                             if (applyResult.success) {
                                                 downloadUpdateBtn.textContent = i18n.t('update_btn_restarting');
                                                 progressText.textContent = applyResult.message;
@@ -2471,9 +2477,9 @@ async function showUpdateModal(updateInfo) {
                                 setTimeout(pollProgress, 1000);
                             }
                         };
-                        
+
                         setTimeout(pollProgress, 500);
-                        
+
                     } catch (e) {
                         Toast.error(i18n.t('alert_download_fail') + e.message);
                         downloadUpdateBtn.disabled = false;
@@ -2488,12 +2494,12 @@ async function showUpdateModal(updateInfo) {
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    
+
                     // 同时打开 Release 页面作为备选
                     setTimeout(() => {
                         window.open(result.release_url, '_blank');
                     }, 500);
-                    
+
                     modal.style.display = 'none';
                 }
             };
@@ -2513,12 +2519,12 @@ async function showUpdateModal(updateInfo) {
             modal.style.display = 'none';
         };
     }
-    
+
     modal.style.display = 'flex';
-    
+
     // 用于跟踪是否正在下载更新
     let isUpdateDownloading = false;
-    
+
     const tryCloseModal = () => {
         if (isUpdateDownloading) {
             Toast.warning(i18n.t('update_warn_dont_close'));
@@ -2526,16 +2532,16 @@ async function showUpdateModal(updateInfo) {
         }
         modal.style.display = 'none';
     };
-    
+
     closeUpdateBtn.onclick = tryCloseModal;
     updateModalClose.onclick = tryCloseModal;
-    
+
     modal.onclick = (e) => {
         if (e.target === modal) {
             tryCloseModal();
         }
     };
-    
+
     // 暴露设置下载状态的方法
     modal.setDownloading = (value) => {
         isUpdateDownloading = value;
@@ -2572,10 +2578,10 @@ async function handleAddToQueue(bookIdOverride = null, prefill = null) {
     }
 
     logger.logKey('log_prepare_download', normalizedId);
-    
+
     // 切换到下载标签页以显示内嵌确认区域
     switchTab('download');
-    
+
     showInlineConfirm(normalizedId, prefill);
 }
 
@@ -2721,10 +2727,10 @@ function showInlineConfirm(bookId, prefill = null) {
                 // Shift + Click for range selection
                 label.addEventListener('click', (e) => {
                     if (e.target === checkbox) return;
-                    
+
                     e.preventDefault();
                     const currentIndex = idx;
-                    
+
                     if (e.shiftKey && lastClickedIndex !== -1) {
                         // Shift+Click: select range
                         const start = Math.min(lastClickedIndex, currentIndex);
@@ -2747,7 +2753,7 @@ function showInlineConfirm(bookId, prefill = null) {
                     // 保存当前所有checkbox的状态
                     const checkboxes = manualList.querySelectorAll('input[type="checkbox"]');
                     originalStates = Array.from(checkboxes).map(cb => cb.checked);
-                    
+
                     isDragging = true;
                     dragStartIndex = idx;
                     dragSelectState = !checkbox.checked;
@@ -3004,18 +3010,18 @@ function showConfirmDialogLegacy(bookInfo) {
     try {
         const modal = document.createElement('div');
         modal.className = 'modal';
-        
+
         let selectionHtml = '';
-    if (AppState.selectedChapters) {
-        selectionHtml = `
+        if (AppState.selectedChapters) {
+            selectionHtml = `
             <div class="chapter-selection-info" style="padding: 12px; background: #0f0f23; border: 2px solid #00ff00;">
                 <p style="margin: 0 0 8px 0; color: #00ff00; font-family: 'Press Start 2P', monospace; font-size: 11px;">${i18n.t('label_manual_selected', AppState.selectedChapters.length)}</p>
                 <p style="margin: 0 0 10px 0; color: #008800; font-size: 10px;">${i18n.t('hint_manual_mode')}</p>
                 <button class="btn btn-sm btn-secondary" onclick="window.reSelectChapters()">${i18n.t('btn_reselect')}</button>
             </div>
         `;
-    } else {
-        selectionHtml = `
+        } else {
+            selectionHtml = `
             <div class="chapter-range">
                 <label>
                     <input type="radio" name="chapterMode" value="all" checked>
@@ -3039,17 +3045,17 @@ function showConfirmDialogLegacy(bookInfo) {
                 <div class="input-row">
                     <label>${i18n.t('label_start_chapter')}</label>
                     <select id="startChapter" class="chapter-select">
-                        ${bookInfo.chapters.map((ch, idx) => 
-                            `<option value="${idx}">${ch.title}</option>`
-                        ).join('')}
+                        ${bookInfo.chapters.map((ch, idx) =>
+                `<option value="${idx}">${ch.title}</option>`
+            ).join('')}
                     </select>
                 </div>
                 <div class="input-row">
                     <label>${i18n.t('label_end_chapter')}</label>
                     <select id="endChapter" class="chapter-select">
-                        ${bookInfo.chapters.map((ch, idx) => 
-                            `<option value="${idx}" ${idx === bookInfo.chapters.length - 1 ? 'selected' : ''}>${ch.title}</option>`
-                        ).join('')}
+                        ${bookInfo.chapters.map((ch, idx) =>
+                `<option value="${idx}" ${idx === bookInfo.chapters.length - 1 ? 'selected' : ''}>${ch.title}</option>`
+            ).join('')}
                     </select>
                 </div>
             </div>
@@ -3087,9 +3093,9 @@ function showConfirmDialogLegacy(bookInfo) {
                 </div>
             </div>
         `;
-    }
+        }
 
-    modal.innerHTML = `
+        modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
                 <h3>${i18n.t('title_confirm_download')}</h3>
@@ -3119,44 +3125,92 @@ function showConfirmDialogLegacy(bookInfo) {
             </div>
         </div>
     `;
-    
-    document.body.appendChild(modal);
-    
-    // Force display flex
-    modal.style.display = 'flex';
-    
-    if (!AppState.selectedChapters) {
-        const chapterModeInputs = modal.querySelectorAll('input[name="chapterMode"]');
-        const chapterInputs = modal.querySelector('#chapterInputs');
-        const chapterManualContainer = modal.querySelector('#chapterManualContainer');
-        const chapterQuickRange = modal.querySelector('#chapterQuickRange');
-        
-        chapterModeInputs.forEach(input => {
-            input.addEventListener('change', (e) => {
-                chapterInputs.style.display = e.target.value === 'range' ? 'block' : 'none';
-                chapterManualContainer.style.display = e.target.value === 'manual' ? 'block' : 'none';
-                if (chapterQuickRange) {
-                    chapterQuickRange.style.display = e.target.value === 'quick' ? 'block' : 'none';
-                }
+
+        document.body.appendChild(modal);
+
+        // Force display flex
+        modal.style.display = 'flex';
+
+        if (!AppState.selectedChapters) {
+            const chapterModeInputs = modal.querySelectorAll('input[name="chapterMode"]');
+            const chapterInputs = modal.querySelector('#chapterInputs');
+            const chapterManualContainer = modal.querySelector('#chapterManualContainer');
+            const chapterQuickRange = modal.querySelector('#chapterQuickRange');
+
+            chapterModeInputs.forEach(input => {
+                input.addEventListener('change', (e) => {
+                    chapterInputs.style.display = e.target.value === 'range' ? 'block' : 'none';
+                    chapterManualContainer.style.display = e.target.value === 'manual' ? 'block' : 'none';
+                    if (chapterQuickRange) {
+                        chapterQuickRange.style.display = e.target.value === 'quick' ? 'block' : 'none';
+                    }
+                });
             });
-        });
-        
-        // 快速范围输入事件
-        const quickRangeInput = modal.querySelector('#quickRangeInput');
-        const quickRangeResult = modal.querySelector('#quickRangeResult');
-        const applyQuickRangeBtn = modal.querySelector('#applyQuickRangeBtn');
-        
-        if (quickRangeInput && quickRangeResult) {
-            let debounceTimer = null;
-            quickRangeInput.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(async () => {
+
+            // 快速范围输入事件
+            const quickRangeInput = modal.querySelector('#quickRangeInput');
+            const quickRangeResult = modal.querySelector('#quickRangeResult');
+            const applyQuickRangeBtn = modal.querySelector('#applyQuickRangeBtn');
+
+            if (quickRangeInput && quickRangeResult) {
+                let debounceTimer = null;
+                quickRangeInput.addEventListener('input', () => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(async () => {
+                        const inputValue = quickRangeInput.value.trim();
+                        if (!inputValue) {
+                            quickRangeResult.innerHTML = '';
+                            return;
+                        }
+
+                        try {
+                            const headers = { 'Content-Type': 'application/json' };
+                            if (AppState.accessToken) {
+                                headers['X-Access-Token'] = AppState.accessToken;
+                            }
+                            const response = await fetch('/api/parse-chapter-range', {
+                                method: 'POST',
+                                headers,
+                                body: JSON.stringify({
+                                    input: inputValue,
+                                    max_chapter: bookInfo.chapters.length
+                                })
+                            });
+                            const result = await response.json();
+
+                            if (result.success && result.data) {
+                                const { chapters, errors, warnings } = result.data;
+                                let html = '';
+
+                                if (errors.length > 0) {
+                                    html += `<span style="color: #ff4444;">❌ ${errors.join(', ')}</span>`;
+                                } else if (chapters.length > 0) {
+                                    html += `<span style="color: #00ff00;">✓ ${i18n.t('quick_range_selected', chapters.length) || '已选择 ' + chapters.length + ' 章'}</span>`;
+                                }
+
+                                if (warnings.length > 0) {
+                                    html += `<br><span style="color: #ffaa00;">⚠ ${warnings.join(', ')}</span>`;
+                                }
+
+                                quickRangeResult.innerHTML = html;
+                            } else {
+                                quickRangeResult.innerHTML = `<span style="color: #ff4444;">❌ ${result.message || '解析失败'}</span>`;
+                            }
+                        } catch (e) {
+                            quickRangeResult.innerHTML = `<span style="color: #ff4444;">❌ 解析失败</span>`;
+                        }
+                    }, 300);
+                });
+            }
+
+            if (applyQuickRangeBtn) {
+                applyQuickRangeBtn.addEventListener('click', async () => {
                     const inputValue = quickRangeInput.value.trim();
                     if (!inputValue) {
-                        quickRangeResult.innerHTML = '';
+                        Toast.warning(i18n.t('alert_enter_range') || '请输入章节范围');
                         return;
                     }
-                    
+
                     try {
                         const headers = { 'Content-Type': 'application/json' };
                         if (AppState.accessToken) {
@@ -3171,199 +3225,151 @@ function showConfirmDialogLegacy(bookInfo) {
                             })
                         });
                         const result = await response.json();
-                        
-                        if (result.success && result.data) {
-                            const { chapters, errors, warnings } = result.data;
-                            let html = '';
-                            
-                            if (errors.length > 0) {
-                                html += `<span style="color: #ff4444;">❌ ${errors.join(', ')}</span>`;
-                            } else if (chapters.length > 0) {
-                                html += `<span style="color: #00ff00;">✓ ${i18n.t('quick_range_selected', chapters.length) || '已选择 ' + chapters.length + ' 章'}</span>`;
+
+                        if (result.success && result.data && result.data.chapters.length > 0) {
+                            // 切换到手动模式并选中对应章节
+                            const manualRadio = modal.querySelector('input[name="chapterMode"][value="manual"]');
+                            if (manualRadio) {
+                                manualRadio.checked = true;
+                                chapterInputs.style.display = 'none';
+                                chapterQuickRange.style.display = 'none';
+                                chapterManualContainer.style.display = 'block';
+
+                                // 选中解析出的章节
+                                const checkboxes = modal.querySelectorAll('#dialogChapterList input[type="checkbox"]');
+                                const selectedSet = new Set(result.data.chapters);
+                                checkboxes.forEach(cb => {
+                                    cb.checked = selectedSet.has(parseInt(cb.value));
+                                });
+                                window.updateDialogSelectedCount();
+
+                                Toast.success(i18n.t('quick_range_applied', result.data.chapters.length) || `已应用范围，选中 ${result.data.chapters.length} 章`);
                             }
-                            
-                            if (warnings.length > 0) {
-                                html += `<br><span style="color: #ffaa00;">⚠ ${warnings.join(', ')}</span>`;
-                            }
-                            
-                            quickRangeResult.innerHTML = html;
+                        } else if (result.data && result.data.errors.length > 0) {
+                            Toast.error(result.data.errors.join(', '));
                         } else {
-                            quickRangeResult.innerHTML = `<span style="color: #ff4444;">❌ ${result.message || '解析失败'}</span>`;
+                            Toast.warning(i18n.t('alert_no_chapters_selected') || '没有选中任何章节');
                         }
                     } catch (e) {
-                        quickRangeResult.innerHTML = `<span style="color: #ff4444;">❌ 解析失败</span>`;
+                        Toast.error(i18n.t('alert_parse_range_fail') || '解析范围失败');
                     }
-                }, 300);
-            });
+                });
+            }
         }
-        
-        if (applyQuickRangeBtn) {
-            applyQuickRangeBtn.addEventListener('click', async () => {
-                const inputValue = quickRangeInput.value.trim();
-                if (!inputValue) {
-                    Toast.warning(i18n.t('alert_enter_range') || '请输入章节范围');
-                    return;
-                }
-                
-                try {
-                    const headers = { 'Content-Type': 'application/json' };
-                    if (AppState.accessToken) {
-                        headers['X-Access-Token'] = AppState.accessToken;
-                    }
-                    const response = await fetch('/api/parse-chapter-range', {
-                        method: 'POST',
-                        headers,
-                        body: JSON.stringify({
-                            input: inputValue,
-                            max_chapter: bookInfo.chapters.length
-                        })
-                    });
-                    const result = await response.json();
-                    
-                    if (result.success && result.data && result.data.chapters.length > 0) {
-                        // 切换到手动模式并选中对应章节
-                        const manualRadio = modal.querySelector('input[name="chapterMode"][value="manual"]');
-                        if (manualRadio) {
-                            manualRadio.checked = true;
-                            chapterInputs.style.display = 'none';
-                            chapterQuickRange.style.display = 'none';
-                            chapterManualContainer.style.display = 'block';
-                            
-                            // 选中解析出的章节
-                            const checkboxes = modal.querySelectorAll('#dialogChapterList input[type="checkbox"]');
-                            const selectedSet = new Set(result.data.chapters);
-                            checkboxes.forEach(cb => {
-                                cb.checked = selectedSet.has(parseInt(cb.value));
-                            });
-                            window.updateDialogSelectedCount();
-                            
-                            Toast.success(i18n.t('quick_range_applied', result.data.chapters.length) || `已应用范围，选中 ${result.data.chapters.length} 章`);
-                        }
-                    } else if (result.data && result.data.errors.length > 0) {
-                        Toast.error(result.data.errors.join(', '));
-                    } else {
-                        Toast.warning(i18n.t('alert_no_chapters_selected') || '没有选中任何章节');
-                    }
-                } catch (e) {
-                    Toast.error(i18n.t('alert_parse_range_fail') || '解析范围失败');
-                }
-            });
-        }
-    }
-    
-    modal.querySelector('#confirmDownloadBtn').addEventListener('click', async () => {
-        let startChapter = null;
-        let endChapter = null;
-        let selectedChapters = AppState.selectedChapters;
-        
-        if (selectedChapters) {
-            logger.logKey('log_prepare_download', bookInfo.book_name);
-            logger.logKey('log_mode_manual', selectedChapters.length);
-        } else {
-            // Safe check for chapterMode
-            const modeInput = modal.querySelector('input[name="chapterMode"]:checked');
-            if (!modeInput && !selectedChapters) {
-                // Default to all if nothing checked (shouldn't happen due to default checked)
-                startChapter = null; endChapter = null;
+
+        modal.querySelector('#confirmDownloadBtn').addEventListener('click', async () => {
+            let startChapter = null;
+            let endChapter = null;
+            let selectedChapters = AppState.selectedChapters;
+
+            if (selectedChapters) {
+                logger.logKey('log_prepare_download', bookInfo.book_name);
+                logger.logKey('log_mode_manual', selectedChapters.length);
             } else {
-                const mode = modeInput.value;
-                if (mode === 'range') {
-                    startChapter = parseInt(modal.querySelector('#startChapter').value);
-                    endChapter = parseInt(modal.querySelector('#endChapter').value);
-                    
-                    if (startChapter > endChapter) {
-                        Toast.error(i18n.t('alert_chapter_range_error'));
-                        return;
-                    }
-
-                    // 章节范围使用 1-based（end 为包含）
-                    startChapter = startChapter + 1;
-                    endChapter = endChapter + 1;
-                    
-                    logger.logKey('log_prepare_download', bookInfo.book_name);
-                    logger.logKey('log_chapter_range', startChapter, endChapter);
-                } else if (mode === 'manual') {
-                    // 获取手动选择的章节
-                    const checkboxes = modal.querySelectorAll('#dialogChapterList input[type="checkbox"]:checked');
-                    selectedChapters = Array.from(checkboxes).map(cb => parseInt(cb.value));
-                    
-                    if (selectedChapters.length === 0) {
-                        Toast.warning(i18n.t('alert_select_one_chapter'));
-                        return;
-                    }
-                    
-                    logger.logKey('log_prepare_download', bookInfo.book_name);
-                    logger.logKey('log_mode_manual', selectedChapters.length);
+                // Safe check for chapterMode
+                const modeInput = modal.querySelector('input[name="chapterMode"]:checked');
+                if (!modeInput && !selectedChapters) {
+                    // Default to all if nothing checked (shouldn't happen due to default checked)
+                    startChapter = null; endChapter = null;
                 } else {
-                    logger.logKey('log_download_all', bookInfo.book_name);
-                }
-            }
-        }
-        
-        // 检查下载历史
-        try {
-            const headers = { 'Content-Type': 'application/json' };
-            if (AppState.accessToken) {
-                headers['X-Access-Token'] = AppState.accessToken;
-            }
-            const historyResponse = await fetch('/api/download-history/check', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ book_id: bookInfo.book_id })
-            });
-            const historyResult = await historyResponse.json();
-            
-            if (historyResult.success && historyResult.exists) {
-                const record = historyResult.record;
-                const downloadTime = new Date(record.download_time).toLocaleString();
-                
-                // 显示重复下载确认对话框
-                const action = await showDuplicateDownloadDialog(bookInfo, record, downloadTime);
-                
-                if (action === 'cancel') {
-                    return;
-                } else if (action === 'open') {
-                    // 打开已有文件所在目录
-                    if (record.save_path) {
-                        try {
-                            await fetch('/api/open-folder', {
-                                method: 'POST',
-                                headers,
-                                body: JSON.stringify({ path: record.save_path })
-                            });
-                        } catch (e) {
-                            Toast.info(i18n.t('msg_file_path') + ': ' + record.save_path);
-                        }
-                    }
-                    modal.remove();
-                    return;
-                }
-                // action === 'download' 继续下载
-            }
-        } catch (e) {
-            console.error('History check error:', e);
-            // 历史检查失败不阻止下载
-        }
-        
-        const task = {
-            id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-            book_id: bookInfo.book_id,
-            book_name: bookInfo.book_name,
-            author: bookInfo.author,
-            cover_url: bookInfo.cover_url,
-            abstract: bookInfo.abstract,
-            chapter_count: bookInfo.chapters?.length || 0,
-            start_chapter: startChapter,
-            end_chapter: endChapter,
-            selected_chapters: selectedChapters,
-            added_at: new Date().toISOString()
-        };
+                    const mode = modeInput.value;
+                    if (mode === 'range') {
+                        startChapter = parseInt(modal.querySelector('#startChapter').value);
+                        endChapter = parseInt(modal.querySelector('#endChapter').value);
 
-        AppState.addToQueue(task);
-        logger.logKey('msg_added_to_queue', bookInfo.book_name);
-        modal.remove();
-        switchTab('queue');
-    });
+                        if (startChapter > endChapter) {
+                            Toast.error(i18n.t('alert_chapter_range_error'));
+                            return;
+                        }
+
+                        // 章节范围使用 1-based（end 为包含）
+                        startChapter = startChapter + 1;
+                        endChapter = endChapter + 1;
+
+                        logger.logKey('log_prepare_download', bookInfo.book_name);
+                        logger.logKey('log_chapter_range', startChapter, endChapter);
+                    } else if (mode === 'manual') {
+                        // 获取手动选择的章节
+                        const checkboxes = modal.querySelectorAll('#dialogChapterList input[type="checkbox"]:checked');
+                        selectedChapters = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+                        if (selectedChapters.length === 0) {
+                            Toast.warning(i18n.t('alert_select_one_chapter'));
+                            return;
+                        }
+
+                        logger.logKey('log_prepare_download', bookInfo.book_name);
+                        logger.logKey('log_mode_manual', selectedChapters.length);
+                    } else {
+                        logger.logKey('log_download_all', bookInfo.book_name);
+                    }
+                }
+            }
+
+            // 检查下载历史
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (AppState.accessToken) {
+                    headers['X-Access-Token'] = AppState.accessToken;
+                }
+                const historyResponse = await fetch('/api/download-history/check', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ book_id: bookInfo.book_id })
+                });
+                const historyResult = await historyResponse.json();
+
+                if (historyResult.success && historyResult.exists) {
+                    const record = historyResult.record;
+                    const downloadTime = new Date(record.download_time).toLocaleString();
+
+                    // 显示重复下载确认对话框
+                    const action = await showDuplicateDownloadDialog(bookInfo, record, downloadTime);
+
+                    if (action === 'cancel') {
+                        return;
+                    } else if (action === 'open') {
+                        // 打开已有文件所在目录
+                        if (record.save_path) {
+                            try {
+                                await fetch('/api/open-folder', {
+                                    method: 'POST',
+                                    headers,
+                                    body: JSON.stringify({ path: record.save_path })
+                                });
+                            } catch (e) {
+                                Toast.info(i18n.t('msg_file_path') + ': ' + record.save_path);
+                            }
+                        }
+                        modal.remove();
+                        return;
+                    }
+                    // action === 'download' 继续下载
+                }
+            } catch (e) {
+                console.error('History check error:', e);
+                // 历史检查失败不阻止下载
+            }
+
+            const task = {
+                id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+                book_id: bookInfo.book_id,
+                book_name: bookInfo.book_name,
+                author: bookInfo.author,
+                cover_url: bookInfo.cover_url,
+                abstract: bookInfo.abstract,
+                chapter_count: bookInfo.chapters?.length || 0,
+                start_chapter: startChapter,
+                end_chapter: endChapter,
+                selected_chapters: selectedChapters,
+                added_at: new Date().toISOString()
+            };
+
+            AppState.addToQueue(task);
+            logger.logKey('msg_added_to_queue', bookInfo.book_name);
+            modal.remove();
+            switchTab('queue');
+        });
     } catch (e) {
         console.error('Error showing confirm dialog:', e);
         logger.logKey('log_show_dialog_fail', e.message);
@@ -3384,7 +3390,7 @@ async function handleCancel() {
 }
 
 // 全局辅助函数 - 对话框内的章节选择
-window.updateDialogSelectedCount = function() {
+window.updateDialogSelectedCount = function () {
     const checkboxes = document.querySelectorAll('#dialogChapterList input[type="checkbox"]');
     const checked = Array.from(checkboxes).filter(cb => cb.checked);
     const countElement = document.getElementById('dialogSelectedCount');
@@ -3393,25 +3399,25 @@ window.updateDialogSelectedCount = function() {
     }
 };
 
-window.selectAllChaptersInDialog = function() {
+window.selectAllChaptersInDialog = function () {
     const checkboxes = document.querySelectorAll('#dialogChapterList input[type="checkbox"]');
     checkboxes.forEach(cb => cb.checked = true);
     window.updateDialogSelectedCount();
 };
 
-window.selectNoneChaptersInDialog = function() {
+window.selectNoneChaptersInDialog = function () {
     const checkboxes = document.querySelectorAll('#dialogChapterList input[type="checkbox"]');
     checkboxes.forEach(cb => cb.checked = false);
     window.updateDialogSelectedCount();
 };
 
-window.invertChaptersInDialog = function() {
+window.invertChaptersInDialog = function () {
     const checkboxes = document.querySelectorAll('#dialogChapterList input[type="checkbox"]');
     checkboxes.forEach(cb => cb.checked = !cb.checked);
     window.updateDialogSelectedCount();
 };
 
-window.reSelectChapters = function() {
+window.reSelectChapters = function () {
     // 重置章节选择状态
     AppState.selectedChapters = null;
     // 关闭当前对话框
@@ -3431,10 +3437,10 @@ async function handleClear() {
         document.getElementById('bookId').value = '';
         document.getElementById('savePath').value = '';
         document.querySelector('input[name="format"]').checked = true;
-        
+
         // 重置章节选择
         AppState.selectedChapters = null;
-        
+
         logger.clear();
         logger.logKey('msg_settings_cleared');
     }
@@ -3442,14 +3448,14 @@ async function handleClear() {
 
 async function handleBrowse() {
     const currentPath = document.getElementById('savePath').value || '';
-    
+
     logger.logKey('msg_open_folder_dialog');
-    
+
     const selectedPath = await FolderBrowser.show({
         title: i18n.t('folder_browser_title') || '选择保存目录',
         initialPath: currentPath
     });
-    
+
     if (selectedPath) {
         AppState.setSavePath(selectedPath);
         logger.logKey('msg_save_path_updated', selectedPath);
@@ -3460,7 +3466,7 @@ async function handleBrowse() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     logger.logKey('msg_app_start');
-    
+
     // 从URL获取访问令牌
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
@@ -3468,13 +3474,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         AppState.setAccessToken(token);
         logger.logKey('msg_token_loaded');
     }
-    
+
     // 并发执行：更新检查 + 模块初始化
     const [updateResult, initSuccess] = await Promise.all([
         api.checkUpdate().catch(() => ({ success: false })),
         api.init()
     ]);
-    
+
     // 如果有更新，显示更新弹窗，不再加载节点
     if (updateResult.success && updateResult.has_update) {
         initializeUI(true); // 跳过节点加载
@@ -3508,24 +3514,24 @@ function initWindowControls() {
     const minBtn = document.getElementById('winMinimize');
     const maxBtn = document.getElementById('winMaximize');
     const closeBtn = document.getElementById('winClose');
-    
+
     if (!minBtn || !maxBtn || !closeBtn) return;
-    
+
     // 检测是否在 pywebview 环境中
     const isPyWebView = () => window.pywebview && window.pywebview.api;
-    
+
     minBtn.addEventListener('click', () => {
         if (isPyWebView()) {
             window.pywebview.api.minimize_window();
         }
     });
-    
+
     maxBtn.addEventListener('click', () => {
         if (isPyWebView()) {
             window.pywebview.api.toggle_maximize();
         }
     });
-    
+
     closeBtn.addEventListener('click', () => {
         if (isPyWebView()) {
             window.pywebview.api.close_window();
@@ -3533,7 +3539,7 @@ function initWindowControls() {
             window.close();
         }
     });
-    
+
     // 初始化窗口拖动功能
     initWindowDrag();
 }
@@ -3542,21 +3548,21 @@ function initWindowControls() {
 function initWindowDrag() {
     const header = document.querySelector('.dashboard-header');
     if (!header) return;
-    
+
     const isPyWebView = () => window.pywebview && window.pywebview.api;
-    
+
     let isDragging = false;
-    
+
     header.addEventListener('mousedown', (e) => {
         // 忽略按钮和输入框等交互元素
-        if (e.target.closest('.header-actions') || 
-            e.target.closest('button') || 
-            e.target.closest('input') || 
+        if (e.target.closest('.header-actions') ||
+            e.target.closest('button') ||
+            e.target.closest('input') ||
             e.target.closest('select') ||
             e.target.closest('a')) {
             return;
         }
-        
+
         if (isPyWebView() && window.pywebview.api.start_drag) {
             isDragging = true;
             // 传入鼠标在页面内的位置（相对于窗口左上角）
@@ -3564,28 +3570,28 @@ function initWindowDrag() {
             e.preventDefault();
         }
     });
-    
+
     document.addEventListener('mousemove', (e) => {
         if (isDragging && isPyWebView() && window.pywebview.api.drag_window) {
             // 传入屏幕坐标
             window.pywebview.api.drag_window(e.screenX, e.screenY);
         }
     });
-    
+
     document.addEventListener('mouseup', () => {
         isDragging = false;
     });
-    
+
     // 双击标题栏最大化/还原
     header.addEventListener('dblclick', (e) => {
-        if (e.target.closest('.header-actions') || 
-            e.target.closest('button') || 
-            e.target.closest('input') || 
+        if (e.target.closest('.header-actions') ||
+            e.target.closest('button') ||
+            e.target.closest('input') ||
             e.target.closest('select') ||
             e.target.closest('a')) {
             return;
         }
-        
+
         if (isPyWebView()) {
             window.pywebview.api.toggle_maximize();
         }
